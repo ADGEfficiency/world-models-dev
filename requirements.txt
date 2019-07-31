@@ -1,0 +1,5 @@
+imageio==2.5.0
+gym==0.9.4
+tensorflow==2.0.0-beta1
+boto3==1.9.159
+pyglet==1.2.4
