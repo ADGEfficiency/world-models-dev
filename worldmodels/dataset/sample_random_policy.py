@@ -62,7 +62,6 @@ def save_episode(results, process_id, episode):
 def rollouts(
     process_id,
     num_rollouts,
-    agent,
     env,
     max_length,
     results_dir,
