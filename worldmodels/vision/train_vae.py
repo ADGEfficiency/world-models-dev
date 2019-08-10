@@ -25,7 +25,6 @@ def compare_images(model, sample_observations, image_dir):
     )
 
     for idx in range(sample_observations.shape[0]):
-
         actual_ax = axes[idx, 0]
         reconstructed_ax = axes[idx, 1]
 
@@ -36,8 +35,8 @@ def compare_images(model, sample_observations, image_dir):
 
         actual_ax.set_aspect('equal')
         reconstructed_ax.set_aspect('equal')
-    plt.tight_layout()
 
+    plt.tight_layout()
     fig.savefig(os.path.join(image_dir, 'compare.png'))
 
 
@@ -85,13 +84,14 @@ def sort_image_files(image_list):
 
 def generate_gif(image_dir, output_dir):
     print('generating gif from images in {}'.format(image_dir))
-    anim_file = os.path.join(output_dir, 'training.gif')
 
     image_list = [x for x in os.listdir(image_dir) if '.png' in x]
     image_files = sort_image_files(image_list)
     image_files = [os.path.join(image_dir, x) for x in image_list]
 
     image_files = [imageio.imread(f) for f in image_files]
+
+    anim_file = os.path.join(output_dir, 'training.gif')
     imageio.mimsave(anim_file, image_files)
 
 

@@ -7,6 +7,7 @@ from botocore.client import Config
 home = os.environ['HOME']
 results_dir = os.path.join(home, 'world-models-experiments')
 
+
 def list_local_records(record_dir, incl):
     print('getting local {} from {}'.format(incl, record_dir))
     record_dir = os.path.join(results_dir, record_dir)
