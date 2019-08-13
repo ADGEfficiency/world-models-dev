@@ -9,9 +9,8 @@ Dependencies for this project are
 [Resources in rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models)
 
 ```bash
-https://github.com/ADGEfficiency/world-models-dev
-
 python setup.py install
+#  if using S3
 export AWS_LOG_LEVEL=3
 ```
 
