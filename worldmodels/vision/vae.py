@@ -21,23 +21,34 @@ class VAE(tf.keras.Model):
             tf.keras.layers.InputLayer(input_shape=(64, 64, 3)),
 
             tf.keras.layers.Conv2D(
-                filters=32, kernel_size=4, strides=(2, 2), activation='relu'
+                filters=32,
+                kernel_size=4,
+                strides=(2, 2),
+                activation='relu'
             ),
 
             tf.keras.layers.Conv2D(
-                filters=64, kernel_size=4, strides=(2, 2), activation='relu'
+                filters=64,
+                kernel_size=4,
+                strides=(2, 2),
+                activation='relu'
             ),
 
             tf.keras.layers.Conv2D(
-                filters=128, kernel_size=4, strides=(2, 2), activation='relu'
+                filters=128,
+                kernel_size=4,
+                strides=(2, 2),
+                activation='relu'
             ),
 
             tf.keras.layers.Conv2D(
-                filters=256, kernel_size=4, strides=(2, 2), activation='relu'
+                filters=256,
+                kernel_size=4,
+                strides=(2, 2),
+                activation='relu'
             ),
 
             tf.keras.layers.Flatten(),
-
             tf.keras.layers.Dense(latent_dim + latent_dim)
         ])
 
@@ -147,8 +158,8 @@ class VAE(tf.keras.Model):
         )
 
         return {
-            'reconstruction_loss': reconstruction_loss,
-            'kl_loss': kl_loss
+            'reconstruction-loss': reconstruction_loss,
+            'kl-loss': kl_loss
         }
 
     def backward(self, batch):

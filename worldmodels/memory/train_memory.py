@@ -7,10 +7,7 @@ we can sample a different latent vector for a given observation
 """
 
 import argparse
-import logging
-import logging.config
 import os
-import sys
 
 import numpy as np
 import tensorflow as tf
@@ -19,24 +16,6 @@ from worldmodels.dataset.upload_to_s3 import S3, list_local_records
 from worldmodels.dataset.tf_records import shuffle_samples, parse_latent_stats
 from worldmodels.memory.memory import Memory
 from worldmodels.params import memory_params
-
-
-def setup_logging(results_dir):
-    formatter = logging.Formatter('%(message)s')
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    log_file = os.path.join(results_dir, 'training.log')
-    handler = logging.FileHandler(log_file)
-    handler.setFormatter(formatter)
-    handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-
-    stream = logging.StreamHandler(sys.stdout)
-    stream.setLevel(logging.INFO)
-    logger.addHandler(stream)
-
-    return logger
 
 
 def train(dataset, model, epochs, batch_per_epoch, save_every):
@@ -67,6 +46,7 @@ def train(dataset, model, epochs, batch_per_epoch, save_every):
             state = model.lstm.get_zero_hidden_state(x)
 
             batch_loss[batch_num] = model.train_op(x, y, state)
+            assert 1==0 # fix logging message
             logger.info('epoch {} batch {}/{} loss {}'.format(
                 epoch,
                 batch_num,

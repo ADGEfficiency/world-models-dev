@@ -3,15 +3,15 @@ from collections import defaultdict
 import imageio
 import os
 import re
-import shutil
 
 import matplotlib.pyplot as plt
 import tensorflow as tf
 
-from world_models.vision import VAE
-from world_models.dataset.upload_to_s3 import S3
-from world_models.dataset.tf_records import load_and_shuffle_tf_records, parse_random_rollouts
-from world_models.params import vae_params
+from worldmodels.vision.vae import VAE
+from worldmodels.dataset.upload_to_s3 import S3
+from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
+from worldmodels.params import vae_params, results_dir
+from worldmodels import setup_logging
 
 
 def compare_images(model, sample_observations, image_dir):
@@ -96,35 +96,43 @@ def generate_gif(image_dir, output_dir):
 
 
 def train(model, epochs, batch_size, log_every, save_every):
+    logger = setup_logging(os.path.join(results_dir, 'training.csv'))
+    logger.info('epoch, batch, reconstruction-loss, kl-loss')
 
     s3 = S3()
     s3_records = s3.list_all_objects('random-rollouts')
-    dataset = load_and_shuffle_tf_records(parse_random_rollouts, s3_records, batch_size)
+    dataset = shuffle_samples(parse_random_rollouts, s3_records, batch_size)
 
-    for sample_observations, _ in dataset.take(1):
-        pass
+    for sample_observations, _ in dataset.take(1): pass
 
-    sample_observations = sample_observations.numpy()[:4]
     dataset = iter(dataset)
-    sample_latent = tf.random.normal(shape=(16, model.latent_dim))
 
+    sample_observations = sample_observations.numpy()[:16]
+    sample_latent = tf.random.normal(shape=(4, model.latent_dim))
+
+    dataset = iter(dataset)
     batch_per_epoch = int(1000 * len(s3_records) / batch_size)
     print('starting training of {} epochs'.format(epochs))
     print('{} batches per epoch'.format(batch_per_epoch))
 
-    batch_num = 1
     for epoch in range(epochs):
-        generate_images(model, epoch, batch_num, sample_latent, image_dir)
+        generate_images(model, epoch, 0, sample_latent, image_dir)
 
         for batch_num in range(batch_per_epoch):
 
             batch, _ = next(dataset)
             losses = model.backward(batch)
 
+            msg = '{}, {}, {}, {}'.format(
+                epoch,
+                batch_num,
+                losses['reconstruction-loss'].numpy(),
+                losses['kl-loss'].numpy(),
+            )
+            logger.info(msg)
+
             if batch_num % log_every == 0:
-                print('epoch {}/{} - batch {}/{}'.format(epoch, epochs, batch_num, batch_per_epoch))
-                for name, data in losses.items():
-                    print(name, data.numpy())
+                print(msg)
 
             if batch_num % save_every == 0:
                 model.save(results_dir)
@@ -134,30 +142,24 @@ def train(model, epochs, batch_size, log_every, save_every):
 
 
 if __name__ == '__main__':
+    results_dir = os.path.join(results_dir, 'vae-training')
+    os.makedirs(results_dir, exist_ok=True)
+    image_dir = os.path.join(results_dir, 'images')
+    os.makedirs(image_dir, exist_ok=True)
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--load_model', default=1, nargs='?')
     parser.add_argument('--log_every', default=100, nargs='?')
     parser.add_argument('--save_every', default=1000, nargs='?')
-    parser.add_argument('--fresh_start', default=0, nargs='?')
     args = parser.parse_args()
 
-    vae_params['load_model'] = bool(args.load_model),
-    results_dir = vae_params['results_dir']
-
-    if bool(args.fresh_start):
-        print('fresh start')
-        shutil.rmtree(results_dir)
-
-    os.makedirs(results_dir, exist_ok=True)
-    image_dir = os.path.join(results_dir, 'images')
-    os.makedirs(image_dir, exist_ok=True)
-
+    vae_params['load_model'] = bool(int(args.load_model))
     model = VAE(**vae_params)
+
     training_params = {
         'model': model,
         'epochs': 10,
-        'batch_size': 200,
+        'batch_size': 256,
         'log_every': int(args.log_every),  # batches
         'save_every': int(args.save_every)  # batches
     }
@@ -176,9 +178,5 @@ if __name__ == '__main__':
     print('------')
     print(vae_params)
     print('')
-
-    print('setting env variables for AWS')
-    os.environ["AWS_REGION"] = "eu-central-1"
-    os.environ["AWS_LOG_LEVEL"] = "3"
 
     train(**training_params)

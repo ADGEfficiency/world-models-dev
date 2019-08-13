@@ -56,7 +56,8 @@ def shuffle_samples(
     dataset = dataset.map(parse_func, num_parallel_calls=num_cpu)
     dataset = dataset.batch(batch_size, drop_remainder=True)
     dataset = dataset.repeat(repeat).prefetch(1)
-    return iter(dataset)
+    # return iter(dataset)
+    return dataset
 
 
 def batch_episodes(parse_func, records, episode_length, num_cpu=4):
@@ -75,7 +76,6 @@ def batch_episodes(parse_func, records, episode_length, num_cpu=4):
 
     dataset = dataset.batch(episode_length)
     dataset = dataset.repeat(None)
-    #dataset = dataset.batch(1)
     dataset = iter(dataset)
     return dataset
 
