@@ -153,7 +153,7 @@ if __name__ == '__main__':
         s3 = S3()
         records = s3.list_all_objects('random-rollouts')
     else:
-        records = list_local_records('random_rollouts', 'episode')
+        records = list_local_records('random-rollouts', 'episode')
 
     vae_params['load_model'] = bool(int(args.load_model))
     model = VAE(**vae_params)
