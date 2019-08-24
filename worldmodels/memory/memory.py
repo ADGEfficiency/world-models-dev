@@ -164,7 +164,7 @@ class Memory:
     """ initializes LSTM and Mixture models """
     def __init__(
             self,
-            decay_steps,
+            # decay_steps,
             input_dim=35,
             output_dim=32,
             num_timesteps=999,
@@ -175,9 +175,11 @@ class Memory:
             initial_learning_rate=0.001,
             end_learning_rate=0.00001,
             epochs=None,
+            batch_per_epoch=None,
             load_model=False,
             results_dir=None
     ):
+        decay_steps = epochs * batch_per_epoch
         self.input_dim = input_dim
         self.output_dim = output_dim
         self.batch_size = batch_size

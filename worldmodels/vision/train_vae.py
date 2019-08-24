@@ -13,6 +13,8 @@ from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_sample
 from worldmodels.params import vae_params, results_dir
 from worldmodels import setup_logging
 
+from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
+
 
 def compare_images(model, sample_observations, image_dir):
     """ side by side comparison of image and reconstruction """
@@ -100,15 +102,18 @@ def train(model, records, epochs, batch_size, log_every, save_every):
 
     dataset = shuffle_samples(parse_random_rollouts, records, batch_size)
     for sample_observations, _ in dataset.take(1): pass
-    dataset = iter(dataset)
 
     sample_observations = sample_observations.numpy()[:16]
     sample_latent = tf.random.normal(shape=(4, model.latent_dim))
 
     dataset = iter(dataset)
-    batch_per_epoch = int(1000 * len(records) / batch_size)
-    print('starting training of {} epochs'.format(epochs))
-    print('{} batches per epoch'.format(batch_per_epoch))
+
+    epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
+        epochs=epochs,
+        batch_size=batch_size,
+        records=records,
+        samples_per_record=1000
+    )
 
     for epoch in range(epochs):
         generate_images(model, epoch, 0, sample_latent, image_dir)
@@ -137,11 +142,6 @@ def train(model, records, epochs, batch_size, log_every, save_every):
 
 
 if __name__ == '__main__':
-    results_dir = os.path.join(results_dir, 'vae-training')
-    os.makedirs(results_dir, exist_ok=True)
-    image_dir = os.path.join(results_dir, 'images')
-    os.makedirs(image_dir, exist_ok=True)
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--load_model', default=1, nargs='?')
     parser.add_argument('--log_every', default=100, nargs='?')
@@ -149,11 +149,8 @@ if __name__ == '__main__':
     parser.add_argument('--data', default='local', nargs='?')
     args = parser.parse_args()
 
-    if args.data == 'S3':
-        s3 = S3()
-        records = s3.list_all_objects('random-rollouts')
-    else:
-        records = list_local_records('random_rollouts', 'episode')
+    make_directories('vae-training', 'images')
+    records = list_records('random-rollouts', 'episode', args.data)
 
     vae_params['load_model'] = bool(int(args.load_model))
     model = VAE(**vae_params)

@@ -12,13 +12,23 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from worldmodels.dataset.upload_to_s3 import S3, list_local_records
 from worldmodels.dataset.tf_records import shuffle_samples, parse_latent_stats
 from worldmodels.memory.memory import Memory
-from worldmodels.params import memory_params
+from worldmodels.params import memory_params, results_dir
+
+from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
+from worldmodels import setup_logging
 
 
-def train(dataset, model, epochs, batch_per_epoch, save_every):
+def train(dataset, records, epochs, batch_size, batch_per_epoch, save_every):
+    logger = setup_logging(os.path.join(results_dir, 'memory-training', 'training.csv'))
+    logger.info('epoch, batch, reconstruction-loss, kl-loss')
+
+    dataset = shuffle_samples(
+        parse_latent_stats,
+        records,
+        batch_size=batch_size, shuffle_buffer=500, num_cpu=8
+    )
 
     epoch_loss = np.zeros(epochs)
     for epoch in range(epochs):
@@ -67,51 +77,45 @@ def train(dataset, model, epochs, batch_per_epoch, save_every):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--s3', dest='s3', action='store_true')
-    parser.add_argument('--local', dest='s3', action='store_false')
-    parser.set_defaults(s3=True)
+    parser.add_argument('--data', default='local', nargs='?')
+    parser.add_argument('--cpu', default=8, nargs='?')
     args = parser.parse_args()
 
-    home = os.environ['HOME']
-    results_dir = os.path.join(home, 'world-models-experiments', 'memory-training')
-    os.makedirs(results_dir, exist_ok=True)
-    logger = setup_logging(results_dir)
-
-    if bool(args.s3):
-        s3 = S3()
-        records = s3.list_all_objects('latent-stats')
-    else:
-        records = list_local_records('latent-stats', 'episode')
-
+    make_directories('world-models-experiments/memory-training')
+    records = list_records('latent-stats', 'episode', args.data)
     assert len(records) == 10000
 
-    epochs = memory_params['epochs']
-    batch_size = memory_params['batch_size']
-    batch_per_epoch = int(len(records) / batch_size)
-    print('starting training of {} epochs'.format(epochs))
-    print('{} batches per epoch'.format(batch_per_epoch))
-
-    memory_params['decay_steps'] = epochs * batch_per_epoch
-
-    model = Memory(**memory_params)
-
-    dataset = shuffle_samples(
-        parse_latent_stats,
-        records,
-        batch_size=model.batch_size, shuffle_buffer=500, num_cpu=8
+    epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
+        epochs=memory_params['epochs'],
+        batch_size=memory_params['batch_size'],
+        records=records
     )
 
+    memory_params['batch_per_epoch'] = batch_per_epoch
+    model = Memory(**memory_params)
+
     training_params = {
-        'dataset': dataset,
+        'records': records,
         'model': model,
         'epochs': epochs,
+        'batch_size': batch_size,
         'batch_per_epoch': batch_per_epoch,
         'save_every': 20  # batches
     }
 
-    print('setting env variables for AWS')
-    os.environ["AWS_REGION"] = "eu-central-1"
-    os.environ["AWS_LOG_LEVEL"] = "3"
+    print('cli')
+    print('------')
+    print(args)
+    print('')
 
-    model = Memory(**memory_params)
+    print('training params')
+    print('------')
+    print(training_params)
+    print('')
+
+    print('memory params')
+    print('------')
+    print(memory_params)
+    print('')
+
     train(**training_params)

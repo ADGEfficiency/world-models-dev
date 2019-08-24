@@ -1,4 +1,4 @@
-Temporary repo while developing
+Temporary repo while developing a Tensorflow 2 implementation of *World Models* - David Ha, Jürgen Schmidhuber (2018).
 
 ##  Setup
 
@@ -26,7 +26,7 @@ bash gym-setup.sh
 
 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_random_policy.py --num_process 8 --total_episodes 10000
 
-aws s3 sync random-rollouts/ s3://world-models/random-rollouts
+aws s3 sync ~/world-models-experiments/random-rollouts/ s3://world-models/random-rollouts
 ```
 
 ## Training the Variational Auto-Encoder (VAE)
@@ -44,9 +44,12 @@ To run the VAE training (tested on Ubuntu 18.04.02 -
 ```bash
 source tf-setup.sh
 bash before_reboot
-sude reboot
+sudo reboot
 bash after_reboot
-python vision/train_vae.py --load_model 0 --data local
+
+aws s3 sync s3://world-models/random-rollouts ~/world-models-experiments/random-rollouts
+
+python3 worldmodels/vision/train_vae.py --load_model 0 --data local
 ```
 
 ## Sampling latent stats
