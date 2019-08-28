@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 from worldmodels.vision.vae import VAE
+from worldmodels.vision.compare_images import compare_images
 from worldmodels.dataset.upload_to_s3 import S3, list_local_records
 from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
 from worldmodels.params import vae_params, results_dir
@@ -16,41 +17,16 @@ from worldmodels import setup_logging
 from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
 
 
-def compare_images(model, sample_observations, image_dir):
-    """ side by side comparison of image and reconstruction """
-    reconstructed = model.forward(sample_observations)
-
-    fig, axes = plt.subplots(
-        nrows=sample_observations.shape[0],
-        ncols=2,
-        figsize=(5, 8)
-    )
-
-    for idx in range(sample_observations.shape[0]):
-        actual_ax = axes[idx, 0]
-        reconstructed_ax = axes[idx, 1]
-
-        actual_ax.imshow(sample_observations[idx, :, :, :])
-        reconstructed_ax.imshow(reconstructed[idx, :, :, :])
-        actual_ax.set_axis_off()
-        reconstructed_ax.set_axis_off()
-
-        actual_ax.set_aspect('equal')
-        reconstructed_ax.set_aspect('equal')
-
-    plt.tight_layout()
-    fig.savefig(os.path.join(image_dir, 'compare.png'))
-
-
 def generate_images(model, epoch, batch, sample_latent, image_dir):
     """ latent to reconstructed images """
+    assert sample_latent.shape[0] == 4
     predictions = model.decode(sample_latent)
-    fig = plt.figure(figsize=(4, 4))
+    fig, axes = plt.subplots(figsize=(4, 4), nrows=2, ncols=2)
 
-    for i in range(predictions.shape[0]):
-        plt.subplot(4, 4, i+1)
-        plt.imshow(predictions[i, :, :, :])
-        plt.axis('off')
+    axes = axes.reshape(-1)
+    for idx, ax in enumerate(axes):
+        ax.imshow(predictions[idx])
+        ax.axis('off')
 
     plt.savefig('{}/epoch_{}_batch_{}.png'.format(image_dir, epoch, batch))
 
