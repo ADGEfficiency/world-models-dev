@@ -13,9 +13,9 @@ def make_directories(*dirs):
 
 
 def calc_batch_per_epoch(
-    """ used in vae & memory training """
     epochs, batch_size, records, samples_per_record=1
 ):
+    """ used in vae & memory training """
     print('training of {} epochs'.format(epochs))
     batch_per_epoch = int(samples_per_record * len(records) / batch_size)
     print('{} batches per epoch'.format(batch_per_epoch))

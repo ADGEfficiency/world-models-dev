@@ -9,7 +9,6 @@ import tensorflow as tf
 
 from worldmodels.vision.vae import VAE
 from worldmodels.vision.compare_images import compare_images
-from worldmodels.dataset.upload_to_s3 import list_local_records
 from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
 from worldmodels.params import vae_params, results_dir
 from worldmodels import setup_logging
@@ -79,7 +78,7 @@ def train(model, records, epochs, batch_size, log_every, save_every):
     dataset = shuffle_samples(parse_random_rollouts, records, batch_size)
     for sample_observations, _ in dataset.take(1): pass
 
-    sample_observations = sample_observations.numpy()[:16]
+    sample_observations = sample_observations.numpy()[:4]
     sample_latent = tf.random.normal(shape=(4, model.latent_dim))
 
     dataset = iter(dataset)
@@ -90,6 +89,8 @@ def train(model, records, epochs, batch_size, log_every, save_every):
         records=records,
         samples_per_record=1000
     )
+
+    image_dir = os.path.join(results_dir, 'images')
 
     for epoch in range(epochs):
         generate_images(model, epoch, 0, sample_latent, image_dir)
@@ -125,7 +126,8 @@ if __name__ == '__main__':
     parser.add_argument('--data', default='local', nargs='?')
     args = parser.parse_args()
 
-    make_directories('vae-training', 'images')
+    make_directories('vae-training/images')
+    results_dir = os.path.join(results_dir, 'vae-training')
     records = list_records('random-rollouts', 'episode', args.data)
 
     vae_params['load_model'] = bool(int(args.load_model))
