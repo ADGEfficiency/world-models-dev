@@ -50,6 +50,8 @@ bash after_reboot
 aws s3 sync s3://world-models/random-rollouts ~/world-models-experiments/random-rollouts
 
 python3 worldmodels/vision/train_vae.py --load_model 0 --data local
+
+aws s3 sync ~/world-models-experiments/vae-training s3://world-models/vae-training
 ```
 
 ## Sampling latent stats
