@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from worldmodels.vision.vae import VAE
 from worldmodels.vision.compare_images import compare_images
-from worldmodels.dataset.upload_to_s3 import S3, list_local_records
+from worldmodels.dataset.upload_to_s3 import list_local_records
 from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
 from worldmodels.params import vae_params, results_dir
 from worldmodels import setup_logging
