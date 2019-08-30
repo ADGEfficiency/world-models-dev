@@ -51,10 +51,12 @@ aws s3 sync s3://world-models/random-rollouts ~/world-models-experiments/random-
 
 python3 worldmodels/vision/train_vae.py --load_model 0 --data local
 
+tail -f ~/world-models-experiments/vae-training/training.csv
+
 aws s3 sync ~/world-models-experiments/vae-training s3://world-models/vae-training
 ```
 
-## Sampling latent stats
+## Sampling latent statistics
 
 Sample the statistics (mean & variance) of the VAE so we can generate more samples of the latent variables.  Run on CPU:
 
@@ -62,7 +64,7 @@ Sample the statistics (mean & variance) of the VAE so we can generate more sampl
 bash tf-cpu-setup.py
 aws s3 sync s3://world-models/vae-training/models ~/world-models-experiments/vae-training/models
 
-python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 2500
+python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 10000 --data S3
 
 aws s3 sync ~/world-models-experiments/latent-stats  s3://world-models/latent-stats
 ```

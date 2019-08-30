@@ -75,5 +75,5 @@ def batch_episodes(parse_func, records, episode_length, num_cpu=4):
 
     dataset = dataset.batch(episode_length)
     dataset = dataset.repeat(None)
-    # dataset = iter(dataset)
-    # return dataset
+    dataset = iter(dataset)
+    return dataset

@@ -39,11 +39,12 @@ def list_records(
 def list_s3_objects(contains):
     print('S3 objects that include {}'.format(contains))
     s3 = boto3.resource('s3')
-    bucket = s3.Bucket('world-models')
+    name = 'world-models'
+    bucket = s3.Bucket(name)
     objs = bucket.objects.all()
     objs = [o for o in objs if contains in o.key]
     print('found {} objects'.format(objs))
-    return sorted(['s3://{}/{}'.format(self.bucket_name, o.key) for o in objs])
+    return sorted(['s3://{}/{}'.format(name, o.key) for o in objs])
 
 
 def list_local_files(record_dir, incl):
