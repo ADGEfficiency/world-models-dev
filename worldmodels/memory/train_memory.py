@@ -20,7 +20,7 @@ from worldmodels.utils import calc_batch_per_epoch, list_records, make_directori
 from worldmodels import setup_logging
 
 
-def train(dataset, records, epochs, batch_size, batch_per_epoch, save_every):
+def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
     logger = setup_logging(os.path.join(results_dir, 'memory-training', 'training.csv'))
     logger.info('epoch, batch, loss', 'learning-rate')
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument('--cpu', default=8, nargs='?')
     args = parser.parse_args()
 
-    make_directories('world-models-experiments/memory-training')
+    make_directories('memory-training/models')
     records = list_records('latent-stats', 'episode', args.data)
     assert len(records) == 10000
 
@@ -94,6 +94,7 @@ if __name__ == '__main__':
     )
 
     memory_params['batch_per_epoch'] = batch_per_epoch
+    memory_params['load_model'] = False
     model = Memory(**memory_params)
 
     training_params = {

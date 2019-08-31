@@ -19,7 +19,6 @@ memory_params = {
     'epochs': 20,
     'lstm_nodes': 256,
     'num_mix': 5,
-    'decay_steps': None,
     'load_model': True,
     'results_dir': memory_results_dir
 }
