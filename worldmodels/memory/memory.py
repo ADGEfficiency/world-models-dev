@@ -164,7 +164,6 @@ class Memory:
     """ initializes LSTM and Mixture models """
     def __init__(
             self,
-            # decay_steps,
             input_dim=35,
             output_dim=32,
             num_timesteps=999,

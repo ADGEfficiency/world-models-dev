@@ -22,7 +22,7 @@ from worldmodels import setup_logging
 
 def train(dataset, records, epochs, batch_size, batch_per_epoch, save_every):
     logger = setup_logging(os.path.join(results_dir, 'memory-training', 'training.csv'))
-    logger.info('epoch, batch, reconstruction-loss, kl-loss')
+    logger.info('epoch, batch, loss', 'learning-rate')
 
     dataset = shuffle_samples(
         parse_latent_stats,
@@ -51,18 +51,20 @@ def train(dataset, records, epochs, batch_size, batch_per_epoch, save_every):
             y = z[:, 1:, :]
 
             assert x.shape[0] == y.shape[0]
+            assert y.shape[1] == 999
             assert x.shape[2] == 35
             assert y.shape[2] == 32
             state = model.lstm.get_zero_hidden_state(x)
 
             batch_loss[batch_num] = model.train_op(x, y, state)
-            assert 1==0 # fix logging message
-            logger.info('epoch {} batch {}/{} loss {}'.format(
+
+            msg = '{}, {}, {}, {}'.format(
                 epoch,
                 batch_num,
-                batch_per_epoch,
-                batch_loss[batch_num]
-            ))
+                batch_loss[batch_num],
+                model.optimizer.lr
+            )
+            logger.info(msg)
 
             if batch_num % save_every == 0:
                 model.save(results_dir)

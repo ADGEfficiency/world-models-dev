@@ -73,7 +73,7 @@ aws s3 sync ~/world-models-experiments/latent-stats  s3://world-models/latent-st
 
 ## Training LSTM Gaussian mixture
 
-Done on GPU:
+Done on GPU - p3.2xlarge
 
 ```bash
 source tf-setup.sh
