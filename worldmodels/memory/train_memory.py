@@ -30,7 +30,6 @@ def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
         batch_size=batch_size, shuffle_buffer=500, num_cpu=8
     )
 
-    epoch_loss = np.zeros(epochs)
     for epoch in range(epochs):
 
         batch_loss = np.zeros(batch_per_epoch)
@@ -70,11 +69,6 @@ def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
                 model.save(results_dir)
 
         model.save(results_dir)
-
-        epoch_loss[epoch] = np.mean(batch_loss)
-        logger.info('epoch {} loss {}'.format(epoch, epoch_loss[epoch]))
-
-    return epoch_loss
 
 
 if __name__ == '__main__':
