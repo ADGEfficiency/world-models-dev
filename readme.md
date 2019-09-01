@@ -64,7 +64,7 @@ Sample the statistics (mean & variance) of the VAE so we can generate more sampl
 bash tf-cpu-setup.py
 aws s3 sync s3://world-models/vae-training/models ~/world-models-experiments/vae-training/models
 
-python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 10000 --data S3
+python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 10000 --data local
 
 aws s3 sync ~/world-models-experiments/latent-stats  s3://world-models/latent-stats
 ```
@@ -76,15 +76,16 @@ aws s3 sync ~/world-models-experiments/latent-stats  s3://world-models/latent-st
 Done on GPU - p3.2xlarge
 
 ```bash
+#  load before & after reboot from tf-setup
 source tf-setup.sh
 
-bash before_reboot
+before_reboot
 
 sudo reboot
 
-bash after_reboot
+after_reboot
 
-python worldmodels/memory/train_memory.py
+python3 worldmodels/memory/train_memory.py
 
 aws s3 sync ~/world-models-experiments/memory-training  s3://world-models/memory-training
 ```
