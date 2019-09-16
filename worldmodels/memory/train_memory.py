@@ -21,7 +21,8 @@ from worldmodels import setup_logging
 
 
 def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
-    logger = setup_logging(os.path.join(results_dir, 'memory-training', 'training.csv'))
+    results_dir = os.path.join(results_dir, 'memory-training')
+    logger = setup_logging(os.path.join(results_dir, 'training.csv'))
     logger.info('epoch, batch, loss')
 
     dataset = shuffle_samples(
@@ -31,7 +32,6 @@ def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
     )
 
     for epoch in range(epochs):
-
         batch_loss = np.zeros(batch_per_epoch)
         for batch_num in range(batch_per_epoch):
             batch = next(dataset)
