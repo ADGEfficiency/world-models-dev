@@ -138,6 +138,8 @@ if __name__ == '__main__':
     #epochs = 2
     #generations = 2
     #num_process = 2
+    params_dir = os.path.join(results_dir, 'control', 'params')
+    os.makedirs(params_dir, exist_ok=True)
 
     #  need to open the Pool before importing from cma
     with Pool(popsize) as p:
@@ -171,3 +173,15 @@ if __name__ == '__main__':
             global_logger.debug(np.mean(epoch_results))
 
             es.tell(para, epoch_results)
+
+            best_params_idx = np.argmax(epoch_results)
+            best_params = population[best_params_idx]
+            np.save(
+                os.path.join(params_dir, 'gen_{}_params.npy'.format(generation)),
+                population
+            )
+
+            np.save(
+                os.path.join(params_dir, 'gen_{}_results.npy'.format(generation)),
+                epoch_results
+            )
