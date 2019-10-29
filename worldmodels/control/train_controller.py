@@ -62,7 +62,7 @@ def episode(params, seed, collect_data=False):
 
     data = defaultdict(list)
 
-    env.seed(seed)
+    env.seed(int(seed))
     np.random.seed(seed)
 
     obs = env.reset()
@@ -158,12 +158,12 @@ if __name__ == '__main__':
             epoch_results = np.zeros((popsize, epochs))
             for epoch in range(epochs):
                 seeds = np.random.randint(
-                    low=0, high=1000000,
+                    low=0, high=10000,
                     size=population.shape[0]
                 )
 
                 results = p.starmap(episode, zip(population, seeds))
-                rew, para = zip(*results)
+                rew, para, data = zip(*results)
                 epoch_results[:, epoch] = rew
 
             epoch_results = np.mean(epoch_results, axis=1)
