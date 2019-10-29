@@ -173,8 +173,8 @@ class Memory:
             grad_clip=1.0,
             initial_learning_rate=0.001,
             end_learning_rate=0.00001,
-            epochs=None,
-            batch_per_epoch=None,
+            epochs=1,
+            batch_per_epoch=1,
             load_model=False,
             results_dir=None
     ):
