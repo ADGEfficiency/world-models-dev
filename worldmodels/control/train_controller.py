@@ -1,4 +1,4 @@
-from functools import partial
+from collections import defaultdict
 from multiprocessing import Pool
 import os
 
@@ -60,9 +60,10 @@ def episode(params, seed, collect_data=False):
     env = CarRacingWrapper()
     total_reward = 0
 
-    from collections import defaultdict
-
     data = defaultdict(list)
+
+    env.seed(seed)
+    np.random.seed(seed)
 
     obs = env.reset()
     for step in range(max_episode_length):
@@ -156,9 +157,12 @@ if __name__ == '__main__':
 
             epoch_results = np.zeros((popsize, epochs))
             for epoch in range(epochs):
-                #  was fixed at 4 before !
-                seeds = np.arange(population.shape[0])
-                results = p.map(partial(episode), population, seeds)
+                seeds = np.random.randint(
+                    low=0, high=1000000,
+                    size=population.shape[0]
+                )
+
+                results = p.starmap(episode, zip(population, seeds))
                 rew, para = zip(*results)
                 epoch_results[:, epoch] = rew
 
