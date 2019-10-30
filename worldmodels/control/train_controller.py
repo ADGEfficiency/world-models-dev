@@ -1,6 +1,7 @@
 from collections import defaultdict
 from multiprocessing import Pool
 import os
+import pickle
 
 import numpy as np
 import logging
@@ -129,17 +130,17 @@ global_logger = make_logger('rewards')
 
 
 if __name__ == '__main__':
-    generations = 500
-    popsize = 64
-    epochs = 16
-    num_process = 16
+    # generations = 500
+    # popsize = 64
+    # epochs = 16
+    # num_process = 16
 
-    #popsize = 2
-    #epochs = 2
-    #generations = 2
-    #num_process = 2
-    params_dir = os.path.join(results_dir, 'control', 'params')
-    os.makedirs(params_dir, exist_ok=True)
+    popsize = 2
+    epochs = 2
+    generations = 3
+    num_process = 2
+    results_dir = os.path.join(results_dir, 'control', 'generations')
+    os.makedirs(results_dir, exist_ok=True)
 
     #  need to open the Pool before importing from cma
     with Pool(popsize) as p:
@@ -152,9 +153,21 @@ if __name__ == '__main__':
         biases = np.random.randn(output_size)
         x0 = np.concatenate([weights.flatten(), biases.flatten()])
 
-        es = CMAES(x0, opts={'popsize': popsize})
+        previous_gens = sorted(os.listdir(results_dir))
+        if len(previous_gens) > 0:
+            previous_gen = previous_gens[-1]
+            start_generation = int(previous_gen.split('_')[-1]) + 1
 
-        for generation in range(generations):
+            with open(os.path.join(results_dir, previous_gen, 'es.pkl'), 'rb') as save:
+                es = pickle.load(save)
+            print('loaded from previous generation {}'.format(previous_gen))
+
+        else:
+            es = CMAES(x0, opts={'popsize': popsize})
+            start_generation = 0
+
+        print('starting from generation {}'.format(start_generation))
+        for generation in range(start_generation, generations):
             population = es.ask()
 
             epoch_results = np.zeros((popsize, epochs))
@@ -176,12 +189,23 @@ if __name__ == '__main__':
 
             best_params_idx = np.argmax(epoch_results)
             best_params = population[best_params_idx]
+            gen_dir = os.path.join(results_dir, 'generation_{}'.format(generation))
+            os.makedirs(gen_dir, exist_ok=True)
+
             np.save(
-                os.path.join(params_dir, 'gen_{}_params.npy'.format(generation)),
+                os.path.join(gen_dir, 'population-params.npy'),
                 population
             )
 
             np.save(
-                os.path.join(params_dir, 'gen_{}_results.npy'.format(generation)),
+                os.path.join(gen_dir, 'best-params.npy'),
+                best_params
+            )
+
+            np.save(
+                os.path.join(gen_dir, 'epoch-results.npy'),
                 epoch_results
             )
+
+            with open(os.path.join(gen_dir, 'es.pkl'), 'wb') as save:
+                pickle.dump(es, save)
