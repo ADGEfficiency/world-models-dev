@@ -21,7 +21,8 @@ def get_pi_idx(pis, threshold):
             return idx
 
     #  if we get to this point, something is wrong!
-    raise ValueError()
+    print('pdf {} thresh {}'.format(pdf, threshold))
+    return idx
 
 
 class MLP(tf.keras.Model):
