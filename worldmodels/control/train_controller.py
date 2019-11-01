@@ -154,10 +154,8 @@ if __name__ == '__main__':
         x0 = np.concatenate([weights.flatten(), biases.flatten()])
 
         previous_gens = os.listdir(results_dir)
-        sort_idx = [int(filter(str.isdigit, path)) for path in previous_gens]
-
-        # previous_gens = sorted(previous_gens, key=sort_idx)
-        previous_gens = previous_gens[sort_idx]
+        sort_idx = [int(s.split('_')[1]) for s in previous_gens]
+        previous_gens = [p for (i, p) in sorted(zip(sort_idx, previous_gens), reverse=True)]
 
         if len(previous_gens) > 0:
             previous_gen = previous_gens[-1]
