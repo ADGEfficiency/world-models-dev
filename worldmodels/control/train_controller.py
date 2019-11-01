@@ -153,14 +153,19 @@ if __name__ == '__main__':
         biases = np.random.randn(output_size)
         x0 = np.concatenate([weights.flatten(), biases.flatten()])
 
-        previous_gens = sorted(os.listdir(results_dir))
+        previous_gens = os.listdir(results_dir)
+        sort_idx = [int(filter(str.isdigit, path)) for path in previous_gens]
+
+        # previous_gens = sorted(previous_gens, key=sort_idx)
+        previous_gens = previous_gens[sort_idx]
+
         if len(previous_gens) > 0:
             previous_gen = previous_gens[-1]
             start_generation = int(previous_gen.split('_')[-1]) + 1
 
             with open(os.path.join(results_dir, previous_gen, 'es.pkl'), 'rb') as save:
                 es = pickle.load(save)
-            print('loaded from previous generation {}'.format(previous_gen))
+                print('loaded from previous generation {}'.format(previous_gen))
 
         else:
             es = CMAES(x0, opts={'popsize': popsize})
