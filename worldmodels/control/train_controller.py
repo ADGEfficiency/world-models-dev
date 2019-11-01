@@ -143,7 +143,7 @@ if __name__ == '__main__':
     os.makedirs(results_dir, exist_ok=True)
 
     #  need to open the Pool before importing from cma
-    with Pool(popsize) as p:
+    with Pool(popsize, maxtasksperchild=4) as p:
         from cma import CMAEvolutionStrategy
 
         input_size = vae_params['latent_dim'] + memory_params['lstm_nodes']
