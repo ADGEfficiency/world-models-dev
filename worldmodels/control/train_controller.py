@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
         previous_gens = os.listdir(results_dir)
         sort_idx = [int(s.split('_')[1]) for s in previous_gens]
-        previous_gens = [p for (i, p) in sorted(zip(sort_idx, previous_gens), reverse=True)]
+        previous_gens = [p for (i, p) in sorted(zip(sort_idx, previous_gens))]
 
         if len(previous_gens) > 0:
             previous_gen = previous_gens[-1]
