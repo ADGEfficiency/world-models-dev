@@ -107,5 +107,5 @@ aws s3 sync s3://world-models/vae-training/models/ ~/world-models-experiments/va
 
 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/control/main.py
 
-aws s3 sync control/ s3://world-models/control
+aws s3 sync ~/world-models-experiments/control/ s3://world-models/control
 ```

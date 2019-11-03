@@ -100,7 +100,7 @@ def episode(params, seed, collect_data=False):
 
 
 class CMAES:
-    def __init__(self, x0, s0=0.5, opts={}):
+    def __init__(self, x0, s0=0.1, opts={}):
         """
         x0 (OrderedDict) {'param_name': np.array}
         """
