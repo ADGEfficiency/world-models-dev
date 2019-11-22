@@ -109,3 +109,9 @@ xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/c
 
 aws s3 sync ~/world-models-experiments/control/ s3://world-models/control
 ```
+
+
+## Iteration Two
+
+
+Gets confused when on the edge of track

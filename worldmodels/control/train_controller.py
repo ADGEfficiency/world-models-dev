@@ -41,7 +41,7 @@ def get_action(z, state, params):
     return action.astype(np.float32)
 
 
-def episode(params, seed, collect_data=False):
+def episode(params, seed, collect_data=False, max_episode_length=1000):
     #  needs to be imported here for multiprocessing
     import tensorflow as tf
     from worldmodels.vision.vae import VAE
@@ -57,7 +57,6 @@ def episode(params, seed, collect_data=False):
         np.zeros(35).reshape(1, 1, 35)
     )
 
-    max_episode_length = 1000
     env = CarRacingWrapper()
     total_reward = 0
 
@@ -74,13 +73,14 @@ def episode(params, seed, collect_data=False):
 
         action = get_action(z, state[0], params)
         obs, reward, done, _ = env.step(action)
+        print(reward)
 
         x = tf.concat([
             tf.reshape(z, (1, 1, 32)),
             tf.reshape(action, (1, 1, 3))
         ], axis=2)
 
-        _, h_state, c_state = memory(x, state, temperature=1.0)
+        y, h_state, c_state = memory(x, state, temperature=1.0)
         state = [h_state, c_state]
 
         total_reward += reward
@@ -90,9 +90,14 @@ def episode(params, seed, collect_data=False):
 
         if collect_data:
             data['observation'].append(obs)
+            data['latent'].append(z)
+            data['reconstruct'].append(vision.decode(z))
             data['action'].append(action)
             data['mu'].append(mu)
             data['logvar'].append(logvar)
+            data['pred-latent'].append(y)
+            data['pred-reconstruct'].append(vision.decode(y.reshape(1, 32)))
+            data['total-reward'].append(total_reward)
 
     env.close()
     logger.debug(total_reward)

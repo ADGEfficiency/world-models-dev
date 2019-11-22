@@ -1,12 +1,11 @@
-
 import os
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from worldmodels.dataset.car_racing import CarRacingWrapper
-from worldmodels.vision.vae import VAE
 from worldmodels.params import vae_params, results_dir
+from worldmodels.vision.vae import VAE
 
 
 def compare_images(model, sample_observations, image_dir):
