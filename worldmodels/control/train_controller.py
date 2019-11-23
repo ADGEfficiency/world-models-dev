@@ -73,7 +73,6 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
 
         action = get_action(z, state[0], params)
         obs, reward, done, _ = env.step(action)
-        print(reward)
 
         x = tf.concat([
             tf.reshape(z, (1, 1, 32)),
@@ -89,9 +88,13 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
             step = max_episode_length
 
         if collect_data:
+            reconstruct = vision.decode(z)
+            vae_loss = vision.get_loss(reconstruct)
             data['observation'].append(obs)
             data['latent'].append(z)
-            data['reconstruct'].append(vision.decode(z))
+            data['reconstruct'].append(reconstruct)
+            data['vae-loss-reconstruct'].append(vae_loss['reconstruction-loss']),
+            data['vae-loss-kl'].append(vae_loss['kl-loss'])
             data['action'].append(action)
             data['mu'].append(mu)
             data['logvar'].append(logvar)

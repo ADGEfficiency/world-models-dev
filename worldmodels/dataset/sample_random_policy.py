@@ -9,9 +9,10 @@ import tensorflow as tf
 from worldmodels.dataset.car_racing import CarRacingWrapper
 from worldmodels.dataset.tf_records import encode_floats
 from worldmodels.params import results_dir
+from worldmodels.control.train_controller import episode
+from worldmodels.control.sample_controller import get_controller_params
 
 
-results_dir = os.path.join(results_dir, 'random-rollouts')
 
 
 def random_rollout(env, max_length, results=None):
@@ -44,6 +45,16 @@ def random_rollout(env, max_length, results=None):
     return results
 
 
+def controller_rollout(params):
+    results = episode(
+        params,
+        collect_data=True,
+        max_episode_length=1000,
+        seed=42
+    )
+    return results[2]
+
+
 def save_episode(results, process_id, episode):
     """ results dictionary to .tfrecord """
 
@@ -65,13 +76,20 @@ def rollouts(
     env,
     max_length,
     results_dir,
+    dataset='random'
 ):
     """ runs many episodes """
     for episode in range(num_rollouts):
-        results = random_rollout(
-            env=env,
-            max_length=max_length,
-        )
+        if dataset == 'controller':
+            params = get_controller_params()
+            results = controller_rollout(params)
+
+        else:
+            assert dataset == 'random-rollouts'
+            results = random_rollout(
+                env=env,
+                max_length=max_length,
+            )
         print('process {} episode {} length {}'.format(
             process_id, episode, len(results['observation'])
         ))
@@ -88,6 +106,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_process', default=2, nargs='?', type=int)
     parser.add_argument('--total_episodes', default=10, nargs='?', type=int)
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
+    parser.add_argument('--dataset', default='random-rollouts', nargs='?')
     args = parser.parse_args()
     print(args)
 
@@ -96,6 +115,7 @@ if __name__ == '__main__':
     episodes_per_process = int(total_episodes / num_process)
     max_length = args.episode_length
 
+    results_dir = os.path.join(results_dir, args.dataset)
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
@@ -108,6 +128,7 @@ if __name__ == '__main__':
                 env=env,
                 max_length=max_length,
                 results_dir=results_dir,
+                dataset=args.dataset
             ),
             range(num_process)
         )

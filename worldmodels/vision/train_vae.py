@@ -1,74 +1,14 @@
 import argparse
-from collections import defaultdict
-import imageio
 import os
-import re
 
-import matplotlib.pyplot as plt
 import tensorflow as tf
 
-from worldmodels.vision.vae import VAE
-from worldmodels.vision.compare_images import compare_images
+from worldmodels import setup_logging
 from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
 from worldmodels.params import vae_params, results_dir
-from worldmodels import setup_logging
-
+from worldmodels.vision.vae import VAE
+from worldmodels.vision.compare_images import compare_images, generate_images, generate_gif
 from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
-
-
-def generate_images(model, epoch, batch, sample_latent, image_dir):
-    """ latent to reconstructed images """
-    assert sample_latent.shape[0] == 4
-    predictions = model.decode(sample_latent)
-    fig, axes = plt.subplots(figsize=(4, 4), nrows=2, ncols=2)
-
-    axes = axes.reshape(-1)
-    for idx, ax in enumerate(axes):
-        ax.imshow(predictions[idx])
-        ax.axis('off')
-
-    plt.savefig('{}/epoch_{}_batch_{}.png'.format(image_dir, epoch, batch))
-
-
-def sort_image_files(image_list):
-    """ orders the images generated during training """
-    epochs = defaultdict(list)
-
-    #  group into epochs
-    max_epoch = 0
-    for image in image_list:
-        epoch = re.search(r'epoch_([0-9]*)_(.*)', image).groups()[0]
-        epochs[epoch].append(image)
-        max_epoch = max(int(epoch), max_epoch)
-
-    #  sort each of the lists
-    sorted_batches = []
-    for epoch in range(1, max_epoch+1):
-
-        batch = epochs[str(epoch)]
-
-        sort_array = []
-        for image in batch:
-            sort_array.append(int(re.search(r'batch_([0-9]+)', image).groups()[0]))
-
-        sorted_batch = [image for idx, image in sorted(zip(sort_array, batch), reverse=False)]
-
-        for batch in sorted_batch:
-            sorted_batches.append(batch)
-
-    return sorted_batches
-
-
-def generate_gif(image_dir, output_dir):
-    print('generating gif from images in {}'.format(image_dir))
-
-    image_list = [x for x in os.listdir(image_dir) if '.png' in x]
-    image_files = sort_image_files(image_list)
-    image_files = [os.path.join(image_dir, x) for x in image_list]
-    image_files = [imageio.imread(f) for f in image_files]
-
-    anim_file = os.path.join(output_dir, 'training.gif')
-    imageio.mimsave(anim_file, image_files)
 
 
 def train(model, records, epochs, batch_size, log_every, save_every):
@@ -124,11 +64,25 @@ if __name__ == '__main__':
     parser.add_argument('--log_every', default=100, nargs='?')
     parser.add_argument('--save_every', default=1000, nargs='?')
     parser.add_argument('--data', default='local', nargs='?')
+    parser.add_argument('--dataset', default='random-rollouts', nargs='?')
     args = parser.parse_args()
 
     make_directories('vae-training/images')
     results_dir = os.path.join(results_dir, 'vae-training')
-    records = list_records('random-rollouts', 'episode', args.data)
+
+    if args.dataset == 'random':
+        records = list_records(
+            path='random-rollouts',
+            contains='episode',
+            data=args.data
+        )
+
+    else:
+        records = list_records(
+            path='controller',
+            contains='episode',
+            data=args.data
+        )
 
     vae_params['load_model'] = bool(int(args.load_model))
     model = VAE(**vae_params)
