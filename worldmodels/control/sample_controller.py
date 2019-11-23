@@ -4,7 +4,8 @@ import os
 import numpy as np
 
 from worldmodels.control.train_controller import episode
-from worldmodels.params import results_dir
+prom worldmodels.params import results_dir
+from worldmodels.vision.compare_images import generate_gif
 
 
 def get_controller_params(how='latest'):
@@ -80,17 +81,6 @@ if __name__ == '__main__':
 
         image_files.append(imageio.imread(f_name))
         print(f_name)
-
-    from worldmodels.vision.train_vae import generate_gif
-
-    # image_files = os.listdir('./debug')
-    # image_files = [int(i.split('.')[0]) for i in image_files if '.png' in i]
-
-    # out = []
-    # print('loading files')
-    # for img_fi in range(max(image_files)):
-    #     img = imageio.imread(os.path.join('./debug', '{}.png'.format(img_fi)))
-    #     out.append(img)
 
     anim_file = os.path.join(results_dir, 'debug', 'training.gif')
     print('saving to gif')

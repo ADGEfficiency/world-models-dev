@@ -13,8 +13,6 @@ from worldmodels.control.train_controller import episode
 from worldmodels.control.sample_controller import get_controller_params
 
 
-
-
 def random_rollout(env, max_length, results=None):
     """ runs an episode with a random policy """
 
@@ -46,6 +44,7 @@ def random_rollout(env, max_length, results=None):
 
 
 def controller_rollout(params):
+    """ runs an episode with pre-trained controller parameters"""
     results = episode(
         params,
         collect_data=True,
@@ -76,16 +75,16 @@ def rollouts(
     env,
     max_length,
     results_dir,
-    dataset='random'
+    policy='random-rollouts'
 ):
     """ runs many episodes """
     for episode in range(num_rollouts):
-        if dataset == 'controller':
+        if policy == 'controller-rollouts':
             params = get_controller_params()
             results = controller_rollout(params)
 
         else:
-            assert dataset == 'random-rollouts'
+            assert policy == 'random-rollouts'
             results = random_rollout(
                 env=env,
                 max_length=max_length,
@@ -106,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_process', default=2, nargs='?', type=int)
     parser.add_argument('--total_episodes', default=10, nargs='?', type=int)
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
-    parser.add_argument('--dataset', default='random-rollouts', nargs='?')
+    parser.add_argument('--policy', default='random-rollouts', nargs='?')
     args = parser.parse_args()
     print(args)
 
@@ -115,7 +114,7 @@ if __name__ == '__main__':
     episodes_per_process = int(total_episodes / num_process)
     max_length = args.episode_length
 
-    results_dir = os.path.join(results_dir, args.dataset)
+    results_dir = os.path.join(results_dir, args.policy)
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
@@ -128,7 +127,7 @@ if __name__ == '__main__':
                 env=env,
                 max_length=max_length,
                 results_dir=results_dir,
-                dataset=args.dataset
+                policy=args.policy
             ),
             range(num_process)
         )

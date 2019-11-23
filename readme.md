@@ -24,7 +24,7 @@ To run the dataset generation (tested on Ubuntu 18.04.2 -  c5.4xlarge 512 GB sto
 ```bash
 bash gym-setup.sh
 
-xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_random_policy.py --num_process 8 --total_episodes 10000
+xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy random-rollouts
 
 aws s3 sync ~/world-models-experiments/random-rollouts/ s3://world-models/random-rollouts
 ```
