@@ -108,9 +108,8 @@ But the driving is not so good!
 ![](./assets/first.gif)
 
 ```bash
-aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments/memory-training/models
-
 aws s3 sync s3://world-models/vae-training/models/ ~/world-models-experiments/vae-training/models
+aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments/memory-training/models
 
 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/control/main.py
 
@@ -121,3 +120,12 @@ aws s3 sync ~/world-models-experiments/control/ s3://world-models/control
 
 Gets confused when on the edge of track
 - VAE is the problem
+
+```bash
+aws s3 sync s3://world-models/vae-training/models/ ~/world-models-experiments/vae-training/models
+aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments/memory-training/models
+aws s3 sync s3://world-models/control/generations/generation_418 ~/world-models-experiments/control/generations/generation_418
+
+xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy controller-rollouts
+
+```
