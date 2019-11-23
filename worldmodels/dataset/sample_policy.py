@@ -4,6 +4,7 @@ from functools import partial
 from multiprocessing import Pool
 import os
 
+import numpy as np
 import tensorflow as tf
 
 from worldmodels.dataset.car_racing import CarRacingWrapper
@@ -43,7 +44,7 @@ def random_rollout(env, max_length, results=None):
     return results
 
 
-def controller_rollout(params):
+def controller_rollout(params, seed=42):
     """ runs an episode with pre-trained controller parameters"""
     results = episode(
         params,
@@ -89,6 +90,7 @@ def rollouts(
                 env=env,
                 max_length=max_length,
             )
+
         print('process {} episode {} length {}'.format(
             process_id, episode, len(results['observation'])
         ))
@@ -118,6 +120,8 @@ if __name__ == '__main__':
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
+    total_eps = num_process * episodes_per_process
+    seeds = np.random.randint(0, 100000, size=total_eps)
 
     with Pool(num_process) as p:
         p.map(

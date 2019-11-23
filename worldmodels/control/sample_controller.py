@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from worldmodels.control.train_controller import episode
-prom worldmodels.params import results_dir
+from worldmodels.params import results_dir
 from worldmodels.vision.compare_images import generate_gif
 
 
