@@ -19,8 +19,10 @@ def process_frame(frame, screen_size=None, vertical_cut=-1, max_val=255, save_im
 class CarRacingWrapper(CarRacing):
     screen_size = (64, 64)
 
-    def __init__(self):
+    def __init__(self, seed=None):
         super().__init__()
+        if seed:
+            self.seed(int(seed))
 
         #  new observation space to deal with resize
         self.observation_space = Box(

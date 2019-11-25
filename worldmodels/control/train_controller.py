@@ -57,12 +57,11 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
         np.zeros(35).reshape(1, 1, 35)
     )
 
-    env = CarRacingWrapper()
+    env = CarRacingWrapper(seed=seed)
     total_reward = 0
 
     data = defaultdict(list)
 
-    env.seed(int(seed))
     np.random.seed(seed)
 
     obs = env.reset()

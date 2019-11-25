@@ -14,13 +14,13 @@ from worldmodels.control.train_controller import episode
 from worldmodels.control.sample_controller import get_controller_params
 
 
-def random_rollout(env, max_length, results=None):
+def random_rollout(env, max_length, results=None, seed=None):
     """ runs an episode with a random policy """
 
     if results is None:
         results = defaultdict(list)
 
-    env = env()
+    env = env(seed=seed)
 
     done = False
     observation = env.reset()
@@ -50,7 +50,7 @@ def controller_rollout(params, seed=42):
         params,
         collect_data=True,
         max_episode_length=1000,
-        seed=42
+        seed=seed
     )
     return results[2]
 
@@ -93,13 +93,14 @@ def rollouts(
     for seed, episode in zip(seeds, episodes):
         if policy == 'controller-rollouts':
             params = get_controller_params()
-            results = controller_rollout(params)
+            results = controller_rollout(params, seed=seed)
 
         else:
             assert policy == 'random-rollouts'
             results = random_rollout(
                 env=env,
                 max_length=max_length,
+                seed=seed
             )
 
         print('process {} episode {} length {}'.format(
