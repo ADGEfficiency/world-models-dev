@@ -72,6 +72,8 @@ def save_episode(results, process_id, episode):
 
 def rollouts(
     process_id,
+    rollout_start,
+    rollout_end,
     num_rollouts,
     env,
     max_length,
@@ -79,7 +81,16 @@ def rollouts(
     policy='random-rollouts'
 ):
     """ runs many episodes """
-    for episode in range(num_rollouts):
+
+    #  seeds always the length of the total rollouts per process
+    #  so that if we start midway we get a new seed
+    np.random.seed(process_id)
+    seeds = np.random.randint(0, high=2**32-1, size=num_rollouts)
+    seeds = seeds[rollout_start: rollout_end]
+    episodes = list(range(rollout_start, rollout_end))
+    assert len(episodes) == len(seeds)
+
+    for seed, episode in zip(seeds, episodes):
         if policy == 'controller-rollouts':
             params = get_controller_params()
             results = controller_rollout(params)
@@ -107,6 +118,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_process', default=2, nargs='?', type=int)
     parser.add_argument('--total_episodes', default=10, nargs='?', type=int)
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
+    parser.add_argument('--start_episode', default=0, nargs='?', type=int)
     parser.add_argument('--policy', default='random-rollouts', nargs='?')
     args = parser.parse_args()
     print(args)
@@ -116,17 +128,22 @@ if __name__ == '__main__':
     episodes_per_process = int(total_episodes / num_process)
     max_length = args.episode_length
 
+    rollout_start = args.start_episode
+    rollout_end = episodes_per_process
+    assert rollout_end <= episodes_per_process
+
     results_dir = os.path.join(results_dir, args.policy)
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
     total_eps = num_process * episodes_per_process
-    seeds = np.random.randint(0, 100000, size=total_eps)
 
     with Pool(num_process) as p:
         p.map(
             partial(
                 rollouts,
+                rollout_start=rollout_start,
+                rollout_end=rollout_end,
                 num_rollouts=episodes_per_process,
                 env=env,
                 max_length=max_length,

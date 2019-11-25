@@ -5,6 +5,7 @@ sudo apt install xvfb
 sudo apt-get install swig
 sudo apt-get install python-opengl
 sudo apt-get install fontconfig
+sudo apt-get install python3-tk 
 git clone https://github.com/pybox2d/pybox2d
 cd pybox2d
 sudo python3 setup.py install
