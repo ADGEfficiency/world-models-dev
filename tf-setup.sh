@@ -20,7 +20,7 @@ after_reboot () {
   sudo apt-get update && sudo apt-get install -y --no-install-recommends libnvinfer-dev=5.1.5-1+cuda10.0
 
   sudo apt install python3-pip
-  pip3 install tensorflow-gpu==2.0.0
+  pip3 install tensorflow-gpu==2.0.0b1
   pip3 install imageio==2.5.0
   pip3 install matplotlib==3.0.3
   pip3 install boto3==1.9.159
