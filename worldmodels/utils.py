@@ -26,7 +26,7 @@ def list_records(
     path, contains, data
 ):
     """ interface to S3 or local files """
-    if data == 'S3':
+    if str(data).lower() == 's3':
         return list_s3_objects(contains)
 
     elif data == 'local':

@@ -26,10 +26,11 @@ if __name__ == '__main__':
     parser.add_argument('--episode_start', default=0, nargs='?', type=int)
     parser.add_argument('--episodes', default=10000, nargs='?', type=int)
     parser.add_argument('--data', default='local', nargs='?')
+    parser.add_argument('--dataset', default='random-rollouts', nargs='?')
     args = parser.parse_args()
     print(args)
 
-    records = list_records('random-rollouts', 'episode', args.data)
+    records = list_records(args.dataset, 'episode', args.data)
     make_directories('latent-stats')
     results_dir = join(results_dir, 'latent-stats')
 

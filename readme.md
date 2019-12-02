@@ -70,6 +70,7 @@ Sample the statistics (mean & variance) of the VAE so we can generate more sampl
 
 ```bash
 bash tf-cpu-setup.py
+
 aws s3 sync s3://world-models/vae-training/models ~/world-models-experiments/vae-training/models
 
 python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 10000 --data local
@@ -133,5 +134,7 @@ xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/d
 
 
 aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/controller-rollouts
+
+aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rlouts
 
 ```
