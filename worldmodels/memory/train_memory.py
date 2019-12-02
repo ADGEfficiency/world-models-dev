@@ -72,6 +72,7 @@ def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    parser.add_argument('--load_model', default=1, nargs='?')
     parser.add_argument('--data', default='local', nargs='?')
     parser.add_argument('--cpu', default=8, nargs='?')
     args = parser.parse_args()
@@ -87,7 +88,7 @@ if __name__ == '__main__':
     )
 
     memory_params['batch_per_epoch'] = batch_per_epoch
-    memory_params['load_model'] = False
+    memory_params['load_model'] = bool(int(args.load_model))
     model = Memory(**memory_params)
 
     training_params = {

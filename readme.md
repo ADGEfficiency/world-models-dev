@@ -49,7 +49,6 @@ To run the VAE training (tested on Ubuntu 18.04.02 - p2.xlarge 512)
 ```bash
 source tf-setup.sh
 before_reboot
-sudo reboot
 source tf-setup.sh
 after_reboot
 
@@ -89,8 +88,6 @@ Done on GPU - p3.2xlarge
 source tf-setup.sh
 
 before_reboot
-
-sudo reboot
 
 after_reboot
 
@@ -132,9 +129,14 @@ aws s3 sync s3://world-models/control/generations/generation_418 ~/world-models-
 
 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy controller-rollouts
 
-
 aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/controller-rollouts
+
+
+train vae
 
 aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rlouts
 
+aws s3 sync s3://world-models/results/two/memory-training/models/ ~/world-models-experiments/memory-training/models
+
+python3 worldmodels/memory/train_memory.py
 ```
