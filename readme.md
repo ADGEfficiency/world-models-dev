@@ -44,17 +44,20 @@ Original paper uses 1 epoch, the code based supplied uses 10.
 
 The autoencoder saves a copy of the model into `~/world-models-experiments/vae-training/models`.  Run on GPU:
 
-To run the VAE training (tested on Ubuntu 18.04.02 - 
+To run the VAE training (tested on Ubuntu 18.04.02 - p2.xlarge 512)
 
 ```bash
 source tf-setup.sh
-bash before_reboot
+before_reboot
 sudo reboot
-bash after_reboot
+source tf-setup.sh
+after_reboot
 
 aws s3 sync s3://world-models/random-rollouts ~/world-models-experiments/random-rollouts
 
 python3 worldmodels/vision/train_vae.py --load_model 0 --data local
+
+nvidia-smi -l 1
 
 tail -f ~/world-models-experiments/vae-training/training.csv
 
@@ -127,5 +130,8 @@ aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments
 aws s3 sync s3://world-models/control/generations/generation_418 ~/world-models-experiments/control/generations/generation_418
 
 xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy controller-rollouts
+
+
+aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/controller-rollouts
 
 ```

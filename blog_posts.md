@@ -4,6 +4,11 @@ Reward function structure - is stay alive as long as posible for both???
 
 Each part should go heavy on the maths - part 1 = autoeconder, part 2 = gaussian mixtures and lstms
 
+cloud lessons
+- putting up to s3 rather than just detach volume and connect to gpu instance
+- leaving ssd on for ages
+- not training directly from s3 (this is probably only useful for prediction)
+
 
 
 ## Part 1 - Vision
