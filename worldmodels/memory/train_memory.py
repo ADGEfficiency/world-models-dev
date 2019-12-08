@@ -21,7 +21,6 @@ from worldmodels import setup_logging
 
 
 def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
-    results_dir = os.path.join(results_dir, 'memory-training')
     logger = setup_logging(os.path.join(results_dir, 'training.csv'))
     logger.info('epoch, batch, loss')
 
@@ -80,6 +79,7 @@ if __name__ == '__main__':
     make_directories('memory-training/models')
     records = list_records('latent-stats', 'episode', args.data)
 
+    results_dir = os.path.join(results_dir, 'memory-training')
     epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
         epochs=memory_params['epochs'],
         batch_size=memory_params['batch_size'],
