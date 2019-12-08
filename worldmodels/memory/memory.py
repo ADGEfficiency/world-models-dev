@@ -123,6 +123,8 @@ class GaussianMixture(tf.keras.Model):
         #  softmax the pi's (alpha in Bishop 1994)
         pi = tf.exp(tf.subtract(tf.reduce_max(pi, 3, keepdims=True), pi))
         pi = tf.divide(pi, tf.reduce_sum(pi, 3, keepdims=True))
+
+        sigma = tf.maximum(sigma, 1e-8)
         sigma = tf.exp(sigma)
 
         super().__init__(inputs=[input_layer], outputs=[pi, mu, sigma])
