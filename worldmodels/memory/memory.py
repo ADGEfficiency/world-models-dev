@@ -173,7 +173,7 @@ class Memory:
             batch_size=100,
             lstm_nodes=256,
             num_mix=5,
-            grad_clip=0.5,
+            grad_clip=1.0,
             initial_learning_rate=0.001,
             end_learning_rate=0.00001,
             epochs=1,
