@@ -3,9 +3,15 @@ from multiprocessing import Pool
 import os
 import numpy as np
 
+import imageio
+
+import matplotlib
+matplotlib.use("agg")
+from matplotlib import pyplot as plt
+
+from PIL import Image
 from worldmodels.control.train_controller import episode
 from worldmodels.params import results_dir
-from worldmodels.vision.compare_images import generate_gif
 
 
 def get_controller_params(how='latest'):
@@ -23,11 +29,15 @@ if __name__ == '__main__':
 
     processes = 1
     #  dont think i need parallelization here
-    with Pool(processes) as p:
-        # seeds = np.random.randint(0, 2016, processes)
-        seeds = [42]
-        results = p.map(partial(episode, best, collect_data=True, max_episode_length=1000), seeds)
-        rew, para, data = results[0]
+    # with Pool(processes) as p:
+    #     # seeds = np.random.randint(0, 2016, processes)
+    #     seeds = [42]
+    #     results = p.map(partial(episode, best, collect_data=True, max_episode_length=1000), seeds)
+    #     rew, para, data = results[0]
+
+    seed = 42
+    res = episode(best, seed, collect_data=True, max_episode_length=1000)
+    rew, para, data = res
 
     da = data
     for name, arr in da.items():
@@ -40,11 +50,8 @@ if __name__ == '__main__':
     preds = da['pred-latent'][:-1].reshape(-1, 32)
     error = np.mean(np.abs(labels - preds), axis=1)
 
-    import imageio
-    import matplotlib.pyplot as plt
-
-    from PIL import Image
     image_files = []
+    import pdb; pdb.set_trace()
     for idx in range(labels.shape[0]):
 
         f, axes = plt.subplots(2, 3, figsize=(20, 8))

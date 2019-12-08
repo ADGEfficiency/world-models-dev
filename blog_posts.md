@@ -9,6 +9,11 @@ cloud lessons
 - leaving ssd on for ages
 - not training directly from s3 (this is probably only useful for prediction)
 
+changed from paper
+- sigma at 0.5 in cmaes
+- second round
+- batch size in vae
+
 
 
 ## Part 1 - Vision

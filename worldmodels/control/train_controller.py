@@ -31,9 +31,7 @@ def shape_controller_params(params, output_size=3):
 
 def get_action(z, state, params):
     w, b = shape_controller_params(params)
-
     net_input = np.concatenate([z, state], axis=None)
-
     action = np.tanh(net_input.dot(w) + b)
 
     action[1] = (action[1] + 1.0) / 2.0

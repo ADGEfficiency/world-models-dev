@@ -7,8 +7,14 @@ import numpy as np
 from worldmodels.params import results_dir
 
 
-def process_frame(frame, screen_size=None, vertical_cut=-1, max_val=255, save_img=False):
-    """ crops & convert to float """
+def process_frame(
+    frame,
+    screen_size=None,
+    vertical_cut=-1,
+    max_val=255,
+    save_img=False
+):
+    """ crops, scales & convert to float """
     frame = frame[:vertical_cut, :, :]
     frame = Image.fromarray(frame, mode='RGB')
 
@@ -32,6 +38,7 @@ class CarRacingWrapper(CarRacing):
         )
 
     def step(self, action, save_img=False):
+        """ one step through the environment """
         frame, reward, done, info = super().step(action)
         self.viewer.window.dispatch_events()
 
@@ -57,6 +64,7 @@ class CarRacingWrapper(CarRacing):
         return obs, reward, done, info
 
     def reset(self):
+        """ resets and returns initial observation """
         raw = super().reset()
 
         #  needed to get image rendering

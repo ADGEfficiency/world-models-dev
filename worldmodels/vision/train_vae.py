@@ -79,7 +79,7 @@ if __name__ == '__main__':
 
     else:
         records = list_records(
-            path='controller',
+            path='controller-rollouts',
             contains='episode',
             data=args.data
         )

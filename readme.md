@@ -13,7 +13,7 @@ Why
 - love the paper
 
 ```bash
-git clone https://github.com/ADGEfficiency/world-models-dev
+git clone https://github.com/ADGEfficiency/world-models
 ```
 
 # Training from scratch
@@ -100,6 +100,8 @@ aws s3 sync ~/world-models-experiments/memory-training  s3://world-models/memory
 
 ### Training the CMA-ES linear controller
 
+m5.16xlarge 256
+
 A $200 training of the controller:
 
 ![](./assets/first.png)
@@ -112,9 +114,11 @@ But the driving is not so good!
 aws s3 sync s3://world-models/vae-training/models/ ~/world-models-experiments/vae-training/models
 aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments/memory-training/models
 
-xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/control/main.py
+xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/control/train_controller.py
+tail -f ~/world-models-experiments/control/rewards.log
 
 aws s3 sync ~/world-models-experiments/control/ s3://world-models/control
+
 ```
 
 ## Iteration Two
@@ -131,12 +135,14 @@ xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/d
 
 aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/controller-rollouts
 
+aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rollouts
 
-train vae
+python3 worldmodels/vision/train_vae.py --load_model 1 --data local --epochs 15
 
 aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rlouts
 
 aws s3 sync s3://world-models/results/two/memory-training/models/ ~/world-models-experiments/memory-training/models
 
-python3 worldmodels/memory/train_memory.py
+had problems with loading old lsmt - insteead train from scratch
+python3 worldmodels/memory/train_memory.py --load_model 0
 ```

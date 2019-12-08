@@ -63,6 +63,7 @@ class VAE(tf.keras.Model):
                 filters=128,
                 kernel_size=5,
                 strides=(2, 2),
+                activation='relu'
             ),
 
             tf.keras.layers.Conv2DTranspose(
