@@ -79,7 +79,6 @@ if __name__ == '__main__':
 
     make_directories('memory-training/models')
     records = list_records('latent-stats', 'episode', args.data)
-    assert len(records) == 10000
 
     epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
         epochs=memory_params['epochs'],

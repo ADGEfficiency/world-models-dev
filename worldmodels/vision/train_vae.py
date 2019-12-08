@@ -16,7 +16,8 @@ def train(model, records, epochs, batch_size, log_every, save_every):
     logger.info('epoch, batch, reconstruction-loss, kl-loss')
 
     dataset = shuffle_samples(parse_random_rollouts, records, batch_size)
-    for sample_observations, _ in dataset.take(1): pass
+    ##for sample_observations, _ in dataset.take(1): pass
+    sample_observations = next(dataset)[0]
 
     sample_observations = sample_observations.numpy()[:4]
     sample_latent = tf.random.normal(shape=(4, model.latent_dim))
@@ -90,7 +91,7 @@ if __name__ == '__main__':
 
     training_params = {
         'model': model,
-        'epochs': args.epochs,
+        'epochs': int(args.epochs),
         'batch_size': 256,
         'log_every': int(args.log_every),  # batches
         'save_every': int(args.save_every),  # batches
