@@ -105,7 +105,7 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
 
 
 class CMAES:
-    def __init__(self, x0, s0=0.1, opts={}):
+    def __init__(self, x0, s0=0.5, opts={}):
         """
         x0 (OrderedDict) {'param_name': np.array}
         """
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     os.makedirs(results_dir, exist_ok=True)
 
     #  need to open the Pool before importing from cma
-    with Pool(popsize, maxtasksperchild=4) as p:
+    with Pool(popsize, maxtasksperchild=32) as p:
         from cma import CMAEvolutionStrategy
 
         input_size = vae_params['latent_dim'] + memory_params['lstm_nodes']

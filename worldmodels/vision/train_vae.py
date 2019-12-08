@@ -63,6 +63,7 @@ if __name__ == '__main__':
     parser.add_argument('--load_model', default=1, nargs='?')
     parser.add_argument('--log_every', default=100, nargs='?')
     parser.add_argument('--save_every', default=1000, nargs='?')
+    parser.add_argument('--epochs', default=10, nargs='?')
     parser.add_argument('--data', default='local', nargs='?')
     parser.add_argument('--dataset', default='random-rollouts', nargs='?')
     args = parser.parse_args()
@@ -89,7 +90,7 @@ if __name__ == '__main__':
 
     training_params = {
         'model': model,
-        'epochs': 10,
+        'epochs': args.epochs,
         'batch_size': 256,
         'log_every': int(args.log_every),  # batches
         'save_every': int(args.save_every),  # batches
