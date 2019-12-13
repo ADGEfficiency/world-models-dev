@@ -44,7 +44,7 @@ Original paper uses 1 epoch, the code based supplied uses 10.
 
 The autoencoder saves a copy of the model into `~/world-models-experiments/vae-training/models`.  Run on GPU:
 
-To run the VAE training (tested on Ubuntu 18.04.02 - p2.xlarge 512)
+To run the VAE training (tested on Ubuntu 18.04.02 - p3.2xlarge 512)
 
 ```bash
 source tf-setup.sh
@@ -137,11 +137,9 @@ aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/co
 
 aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rollouts
 
-python3 worldmodels/vision/train_vae.py --load_model 1 --data local --epochs 15
+python3 worldmodels/vision/train_vae.py --load_model 1 --data local --epochs 15 --dataset controller
 
-aws s3 sync s3://world-models/controller-rollouts/ ~/world-models-experiments/controller-rlouts
-
-aws s3 sync s3://world-models/results/two/memory-training/models/ ~/world-models-experiments/memory-training/models
+python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 10000 --data local --dataset controller-rollouts
 
 had problems with loading old lsmt - insteead train from scratch
 python3 worldmodels/memory/train_memory.py --load_model 0

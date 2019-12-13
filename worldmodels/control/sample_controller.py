@@ -35,7 +35,7 @@ if __name__ == '__main__':
     #     results = p.map(partial(episode, best, collect_data=True, max_episode_length=1000), seeds)
     #     rew, para, data = results[0]
 
-    seed = 42
+    seed = 3
     res = episode(best, seed, collect_data=True, max_episode_length=1000)
     rew, para, data = res
 
@@ -51,7 +51,6 @@ if __name__ == '__main__':
     error = np.mean(np.abs(labels - preds), axis=1)
 
     image_files = []
-    import pdb; pdb.set_trace()
     for idx in range(labels.shape[0]):
 
         f, axes = plt.subplots(2, 3, figsize=(20, 8))
@@ -68,19 +67,19 @@ if __name__ == '__main__':
 
         axes[1][0].plot(da['vae-loss-reconstruct'][:idx+1], color='blue', label='vae-loss-reconstruct')
         axes[1][0].plot(da['vae-loss-kld'][:idx+1], color='black', label='vae-loss-kld')
-        axes[1][0].plot(error[:idx], color='red', label='memory mae')
         axes[1][0].set_xlim((0, len(labels)))
-        axes[1][0].set_title('vae loss & memory mae')
+        axes[1][0].set_ylim((0, 100))
+        axes[1][0].set_title('vae losses')
         axes[1][0].legend()
 
-        axes[1][1].imshow(da['latent'][:idx+1].reshape(idx+1, 32).T)
         axes[1][1].set_xlim((0, len(labels)))
-        axes[1][1].set_title('latent')
+        axes[1][1].plot(error[:idx], color='red', label='memory mae')
+        axes[1][1].set_title('memory mean absolute error')
 
         axes[1][2].plot(da['total-reward'][:idx+1])
         axes[1][2].set_xlim((0, len(labels)))
         axes[1][2].set_title('total-reward')
-        f.suptitle('step {}'.format(idx))
+        f.suptitle('step {} - rew {:3.1f} - seed {}'.format(idx, rew, seed))
         out_dir = os.path.join(results_dir, 'debug', 'gif')
         os.makedirs(out_dir, exist_ok=True)
         f_name = os.path.join(out_dir, '{}.png'.format(idx))

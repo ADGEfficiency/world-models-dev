@@ -71,9 +71,10 @@ def train(model, records, epochs, batch_size, batch_per_epoch, save_every):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--load_model', default=1, nargs='?')
+    parser.add_argument('--load_model', default=0, nargs='?')
     parser.add_argument('--data', default='local', nargs='?')
     parser.add_argument('--cpu', default=8, nargs='?')
+    parser.add_argument('--epochs', default=40, nargs='?') # paper says 40
     args = parser.parse_args()
 
     make_directories('memory-training/models')
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     training_params = {
         'records': records,
         'model': model,
-        'epochs': epochs,
+        'epochs': args.epochs,
         'batch_size': batch_size,
         'batch_per_epoch': batch_per_epoch,
         'save_every': 20  # batches
