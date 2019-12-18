@@ -12,7 +12,6 @@ memory_params = {
     'output_dim': 32,  # latent size
     'num_timesteps': 999,
     'batch_size': 100,
-    'epochs': 40,  # paper says 20, repo says 40
     'lstm_nodes': 256,
     'num_mix': 5,
     'grad_clip': 1.0,
