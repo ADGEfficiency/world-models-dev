@@ -6,7 +6,7 @@ import tensorflow as tf
 import pytest
 
 from worldmodels.dataset.tf_records import encode_floats
-from worldmodels.dataset.tf_records import shuffle_full_episodes, batch_episodes, shuffle_samples
+from worldmodels.dataset.tf_records import batch_episodes, shuffle_samples
 
 
 home = os.environ['HOME']
@@ -67,15 +67,15 @@ def test_shuffle_samples(make_records):
     assert np.mean(history) != history[-1]
 
 
-def test_batch_tf_records(make_records):
-    """ run through single episodes in order """
-    records, episode_len, episodes = make_records
-    dataset = batch_episodes(parse_func, records, episode_len)
+# def test_batch_tf_records(make_records):
+#     """ run through single episodes in order """
+#     records, episode_len, episodes = make_records
+#     dataset = batch_episodes(parse_func, records, episode_len)
 
-    for ep in episodes:
-        batch = next(dataset).numpy()
-        np.testing.assert_array_equal(batch[0], ep)
+#     for ep in episodes:
+#         batch = next(dataset).numpy()
+#         np.testing.assert_array_equal(batch[0], ep)
 
-    for ep in episodes:
-        batch = next(dataset).numpy()
-        np.testing.assert_array_equal(batch[0], ep)
+#     for ep in episodes:
+#         batch = next(dataset).numpy()
+#         np.testing.assert_array_equal(batch[0], ep)

@@ -17,7 +17,7 @@ from worldmodels.params import results_dir
 def get_controller_params(how='latest'):
     gens = os.listdir(os.path.join(results_dir, 'control', 'generations'))
     gens = [int(s.split('_')[-1]) for s in gens]
-    gen = max(gens)
+    gen = max(gens) - 2 # MAGIC TODO
     path = os.path.join(results_dir, 'control', 'generations', 'generation_{}'.format(gen), 'best-params.npy')
     print('loading controller from {}'.format(path))
     return np.load(path)
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     #     results = p.map(partial(episode, best, collect_data=True, max_episode_length=1000), seeds)
     #     rew, para, data = results[0]
 
-    seed = 3
+    seed = 11
     res = episode(best, seed, collect_data=True, max_episode_length=1000)
     rew, para, data = res
 

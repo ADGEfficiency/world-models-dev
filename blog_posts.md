@@ -7,18 +7,16 @@ Each part should go heavy on the maths - part 1 = autoeconder, part 2 = gaussian
 cloud lessons
 - putting up to s3 rather than just detach volume and connect to gpu instance
 - leaving ssd on for ages
-- not training directly from s3 (this is probably only useful for prediction)
+- not training directly from s3 (this is probably only useful for prediction as you have multiple Epochs)
 
 changed from paper
 - sigma at 0.5 in cmaes
-- second round
 - batch size in vae
-
-
+- Epochs of training memory
 
 ## Part 1 - Vision
 
-Epochs for VAE training - 1 or 10
+Epochs for VAE training - 1 or 10 (d
 
 ### Testing
 

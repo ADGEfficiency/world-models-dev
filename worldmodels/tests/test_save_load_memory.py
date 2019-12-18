@@ -88,7 +88,8 @@ def test_full_memory(setup):
         np.testing.assert_raises(AssertionError, np.testing.assert_array_equal, ol, ne)
 
 
-def test_lstm_state(setup): x, y, sample = setup
+def test_lstm_state(setup): 
+    x, y, sample = setup
     model = Memory(**memory_params)
     state = model.lstm.get_zero_hidden_state(sample)
 

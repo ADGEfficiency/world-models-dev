@@ -82,7 +82,8 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
         total_reward += reward
 
         if done:
-            step = max_episode_length
+            print('done at {} - reward {}'.format(step, reward))
+            break
 
         if collect_data:
             reconstruct = vision.decode(z)

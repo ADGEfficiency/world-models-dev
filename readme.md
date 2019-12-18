@@ -144,3 +144,10 @@ python3 worldmodels/dataset/sample_latent_stats.py --episode_start 0 --episodes 
 had problems with loading old lsmt - insteead train from scratch
 python3 worldmodels/memory/train_memory.py --load_model 0
 ```
+
+```
+aws s3 sync s3://world-models/control s3://world-models/results/four/control
+
+four = new vae trained 
+
+five = same VAE, but retrained memory (80 epochs on half the data)

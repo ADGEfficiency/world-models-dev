@@ -4,7 +4,7 @@ import shutil
 import numpy as np
 import pytest
 
-from world_models.vision.vae import VAE
+from worldmodels.vision.vae import VAE
 
 
 @pytest.fixture()
