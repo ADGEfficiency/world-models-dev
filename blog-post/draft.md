@@ -1,4 +1,5 @@
 Berlin photos, post onto medium, mentorcruise
+tsne! - map to 2d space!
 
 ## Table of contents
 
@@ -11,6 +12,17 @@ Learn inside a dream
 Open AI challenge
 
 show final code in all the sections
+
+##  The WM agent
+
+The three components
+
+Compression
+- why = decisions
+- image to z
+- future to h
+
+### VAE, MEM, CONTROL
 
 ## Timeline
 
@@ -25,6 +37,7 @@ VAE (loss balancing, error on resize), tensorflow beta, tests
 lstm hidden state (tf2 beta)
 
 29 - mdn (nan loss, cgant fine tune, using notebook, num mixes)
+- linear combination of kernels
 
 ### May
 
@@ -44,7 +57,7 @@ Agent one
 
 7 run on memory
 
-31 first run on controller
+31 first run on controller (500)
 
 ### November
 
@@ -73,11 +86,9 @@ Agent five (linus quote)
 |---|---|---|
 |four| 15 | 5,000
 
-
-
 ## Final results
 
-Ha quote about 850
+> After 150-200 generations (or around 3 days), it should be enough to get around a mean score of ~ 880, which is pretty close to the required score of 900. If you don’t have a lot of money or credits to burn, I recommend you stop if you are satistifed with a score of 850+ (which is around a day of training). Qualitatively, a score of ~ 850-870 is not that much worse compared to our final agent that achieves 900+, and I don’t want to burn your hard-earned money on cloud credits. To get 900+ it might take weeks (who said getting SOTA was easy? :). The final models are saved in log/*.json and you can test and view them the usual way. (http://blog.otoro.net/2018/06/09/world-models-experiments/)
 
 Reproduce paper plots
 
@@ -103,6 +114,8 @@ DOOM, dream
 ## Improvements
 
 VAE loss balancing
+
+Improve random policy sampling (brownian as per pytorch reimpl)
 
 Num mixes?
 

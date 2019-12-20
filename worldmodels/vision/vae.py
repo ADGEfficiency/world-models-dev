@@ -17,6 +17,7 @@ class VAE(tf.keras.Model):
         self.latent_dim = latent_dim
         self.optimizer = tf.keras.optimizers.Adam(learning_rate)
 
+        #  the encoder
         self.inference_net = tf.keras.Sequential([
             tf.keras.layers.InputLayer(input_shape=(64, 64, 3)),
 
@@ -52,6 +53,7 @@ class VAE(tf.keras.Model):
             tf.keras.layers.Dense(latent_dim + latent_dim)
         ])
 
+        #  the decoder
         self.generative_net = tf.keras.Sequential([
             tf.keras.layers.InputLayer(input_shape=(latent_dim,)),
 
