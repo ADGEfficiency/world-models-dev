@@ -43,12 +43,23 @@ def random_rollout(env, episode_length, results=None, seed=None):
     return results
 
 
-def get_controller_params(generation):
+def get_max_gen():
     path = os.path.join(home, 'control', 'generations')
     gens = os.listdir(path)
     gens = [int(s.split('_')[-1]) for s in gens]
     max_gen = max(gens) 
+    return max_gen
+
+
+def get_controller_params(generation):
+    max_gen = get_max_gen()
     gen_best = []
+
+    path = os.path.join(
+        home,
+        'control',
+        'generations'
+    )
 
     gens = list(range(max_gen - 5, max_gen))
     for gen in gens:
@@ -64,9 +75,7 @@ def get_controller_params(generation):
     sleep(3)
 
     path = os.path.join(
-        home,
-        'control',
-        'generations',
+        path,
         'generation_{}'.format(best_gen),
         'best-params.npy'
     )
