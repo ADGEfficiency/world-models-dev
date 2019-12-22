@@ -177,7 +177,7 @@ def rollouts(
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_process', default=2, nargs='?', type=int)
-    parser.add_argument('--total_episodes', default=10, nargs='?', type=int)
+    parser.add_argument('--episodes', default=10, nargs='?', type=int)
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
     parser.add_argument('--start_episode', default=0, nargs='?', type=int)
     parser.add_argument('--policy', default='random-rollouts', nargs='?')
@@ -187,8 +187,8 @@ if __name__ == '__main__':
     print(args)
 
     num_process = int(args.num_process)
-    total_episodes = args.total_episodes
-    episodes_per_process = int(total_episodes / num_process)
+    episodes = args.episodes
+    episodes_per_process = int(episodes / num_process)
     episode_length = args.episode_length
 
     rollout_start = args.start_episode

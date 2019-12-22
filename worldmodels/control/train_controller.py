@@ -90,14 +90,14 @@ def episode(params, seed, collect_data=False, episode_length=1000):
             vae_loss = vision.loss(reconstruct)
             data['observation'].append(obs)
             data['latent'].append(z)
-            data['reconstruct'].append(reconstruct)
+            data['reconstruct'].append(np.squeeze(reconstruct))
             data['vae-loss-reconstruct'].append(vae_loss['reconstruction-loss']),
             data['vae-loss-kl'].append(vae_loss['kl-loss'])
             data['action'].append(action)
             data['mu'].append(mu)
             data['logvar'].append(logvar)
             data['pred-latent'].append(y)
-            data['pred-reconstruct'].append(vision.decode(y.reshape(1, 32)))
+            data['pred-reconstruct'].append(np.squeeze(vision.decode(y.reshape(1, 32))))
             data['total-reward'].append(total_reward)
 
     env.close()
