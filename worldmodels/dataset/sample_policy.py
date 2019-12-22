@@ -9,12 +9,11 @@ import tensorflow as tf
 
 from worldmodels.dataset.car_racing import CarRacingWrapper
 from worldmodels.dataset.tf_records import encode_floats
-from worldmodels.params import results_dir
+from worldmodels.params import home
 from worldmodels.control.train_controller import episode
-from worldmodels.control.sample_controller import get_controller_params
 
 
-def random_rollout(env, max_length, results=None, seed=None):
+def random_rollout(env, episode_length, results=None, seed=None):
     """ runs an episode with a random policy """
 
     if results is None:
@@ -36,7 +35,7 @@ def random_rollout(env, max_length, results=None, seed=None):
 
         observation = next_observation
         step += 1
-        if step >= max_length:
+        if step >= episode_length:
             done = True
 
     env.close()
@@ -44,18 +43,58 @@ def random_rollout(env, max_length, results=None, seed=None):
     return results
 
 
-def controller_rollout(params, seed=42):
+def get_controller_params(generation):
+    path = os.path.join(home, 'control', 'generations')
+    gens = os.listdir(path)
+    gens = [int(s.split('_')[-1]) for s in gens]
+    max_gen = max(gens) 
+    gen_best = []
+
+    gens = list(range(max_gen - 5, max_gen))
+    for gen in gens:
+        rew = np.load(
+            os.path.join(path, 'generation_{}'.format(gen), 'epoch-results.npy')
+        )
+        gen_best.append(max(rew))
+
+    best_gen = gens[np.argmax(gen_best)]
+    print('max gen {} best gen {} {}'.format(max_gen, best_gen, max(rew)))
+
+    from time import sleep
+    sleep(3)
+
+    path = os.path.join(
+        home,
+        'control',
+        'generations',
+        'generation_{}'.format(best_gen),
+        'best-params.npy'
+    )
+    print('loading controller from {}'.format(path))
+    return np.load(path)
+
+
+def controller_rollout(params, seed=42, episode_length=1000):
     """ runs an episode with pre-trained controller parameters"""
     results = episode(
         params,
         collect_data=True,
-        max_episode_length=1000,
+        episode_length=episode_length,
         seed=seed
     )
     return results[2]
 
 
-def save_episode(results, process_id, episode):
+def save_episode(results, process_id, episode, seed, dtype='tf-record'):
+
+    if dtype == 'tf-record':
+        save_episode_tf_record(results, process_id, episode)
+    else:
+        assert dtype == 'numpy'
+        save_episode_numpy(results, seed)
+
+
+def save_episode_tf_record(results, process_id, episode):
     """ results dictionary to .tfrecord """
 
     path = os.path.join(
@@ -70,15 +109,32 @@ def save_episode(results, process_id, episode):
             writer.write(encoded)
 
 
+def save_episode_numpy(results, seed):
+    """ results dictionary to .npy """
+    path = os.path.join(
+        home, 'controller-samples', str(seed)
+    )
+    os.makedirs(path, exist_ok=True)
+
+    for name, data in results.items():
+        results[name] = np.array([np.array(a) for a in data])
+        print(name, results[name].shape)
+        np.save(
+            os.path.join(path, '{}.npy'.format(name)), data
+        )
+
+
 def rollouts(
     process_id,
     rollout_start,
     rollout_end,
     num_rollouts,
     env,
-    max_length,
+    episode_length,
     results_dir,
-    policy='random-rollouts'
+    policy='random-rollouts',
+    controller_generation=0,
+    dtype='tf-records'
 ):
     """ runs many episodes """
 
@@ -92,14 +148,18 @@ def rollouts(
 
     for seed, episode in zip(seeds, episodes):
         if policy == 'controller-rollouts':
-            params = get_controller_params()
-            results = controller_rollout(params, seed=seed)
+            params = get_controller_params(controller_generation)
+            results = controller_rollout(
+                params,
+                seed=seed,
+                episode_length=episode_length
+            )
 
         else:
             assert policy == 'random-rollouts'
             results = random_rollout(
                 env=env,
-                max_length=max_length,
+                episode_length=episode_length,
                 seed=seed
             )
 
@@ -107,7 +167,7 @@ def rollouts(
             process_id, episode, len(results['observation'])
         ))
 
-        save_episode(results, process_id, episode)
+        save_episode(results, process_id, episode, dtype=dtype, seed=seed)
 
         paths = os.listdir(results_dir)
         episodes = [path for path in paths if 'episode' in path]
@@ -121,19 +181,21 @@ if __name__ == '__main__':
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
     parser.add_argument('--start_episode', default=0, nargs='?', type=int)
     parser.add_argument('--policy', default='random-rollouts', nargs='?')
+    parser.add_argument('--controller-generation', default=0, nargs='?', type=int)
+    parser.add_argument('--dtype', default='tf-records', nargs='?')
     args = parser.parse_args()
     print(args)
 
     num_process = int(args.num_process)
     total_episodes = args.total_episodes
     episodes_per_process = int(total_episodes / num_process)
-    max_length = args.episode_length
+    episode_length = args.episode_length
 
     rollout_start = args.start_episode
     rollout_end = episodes_per_process
     assert rollout_end <= episodes_per_process
 
-    results_dir = os.path.join(results_dir, args.policy)
+    results_dir = os.path.join(home, args.policy)
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
@@ -147,9 +209,11 @@ if __name__ == '__main__':
                 rollout_end=rollout_end,
                 num_rollouts=episodes_per_process,
                 env=env,
-                max_length=max_length,
+                episode_length=episode_length,
                 results_dir=results_dir,
-                policy=args.policy
+                policy=args.policy,
+                controller_generation=args.controller_generation,
+                dtype=args.dtype
             ),
             range(num_process)
         )

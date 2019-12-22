@@ -4,8 +4,6 @@ from gym.spaces.box import Box
 from gym.envs.box2d.car_racing import CarRacing
 import numpy as np
 
-from worldmodels.params import results_dir
-
 
 def process_frame(
     frame,
@@ -49,17 +47,6 @@ class CarRacingWrapper(CarRacing):
             max_val=255.0,
             save_img=save_img
         )
-
-        if save_img:
-            frame.save(
-                results_dir+'/debug/raw_frame{}.png'.format(save_img),
-                'PNG'
-            )
-
-            obs.save(
-                results_dir+'/debug/processed().png'.format(save_img),
-                'PNG'
-            )
 
         return obs, reward, done, info
 

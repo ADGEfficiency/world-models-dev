@@ -1,7 +1,7 @@
 from os import environ, path
 
 
-results_dir = path.join(environ['HOME'], 'world-models-experiments')
+home = path.join(environ['HOME'], 'world-models-experiments')
 
 env_params = {
     'num_actions': 3
@@ -18,12 +18,12 @@ memory_params = {
     'initial_learning_rate': 0.001,
     'end_learning_rate': 0.00001,
     'load_model': True,
-    'results_dir': path.join(results_dir, 'memory-training')
+    'results_dir': path.join(home, 'memory-training')
 }
 
 vae_params = {
     'latent_dim': 32,
     'learning_rate': 0.0001,
     'load_model': True,
-    'results_dir': path.join(results_dir, 'vae-training')
+    'results_dir': path.join(home, 'vae-training')
 }

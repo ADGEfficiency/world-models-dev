@@ -3,7 +3,7 @@ Temporary repo while developing a Tensorflow 2 implementation of *World Models* 
 ##  Setup
 
 Dependencies for this project are
-- tensorflow 2.0
+- TensorFlow 2.0
 - gym
 
 [Resources in rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models)

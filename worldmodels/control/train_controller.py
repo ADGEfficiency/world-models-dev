@@ -7,13 +7,13 @@ import numpy as np
 import logging
 
 from worldmodels.dataset.car_racing import CarRacingWrapper
-from worldmodels.params import vae_params, memory_params, env_params, results_dir
+from worldmodels.params import vae_params, memory_params, env_params, home
 
 
 def make_logger(name):
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
-    fldr = os.path.join(results_dir, 'control')
+    fldr = os.path.join(home, 'control')
     os.makedirs(fldr, exist_ok=True)
     fh = logging.FileHandler(os.path.join(fldr, '{}.log'.format(name)))
     fh.setLevel(logging.DEBUG)
@@ -39,7 +39,7 @@ def get_action(z, state, params):
     return action.astype(np.float32)
 
 
-def episode(params, seed, collect_data=False, max_episode_length=1000):
+def episode(params, seed, collect_data=False, episode_length=1000):
     #  needs to be imported here for multiprocessing
     import tensorflow as tf
     from worldmodels.vision.vae import VAE
@@ -63,7 +63,7 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
     np.random.seed(seed)
 
     obs = env.reset()
-    for step in range(max_episode_length):
+    for step in range(episode_length):
         obs = obs.reshape(1, 64, 64, 3).astype(np.float32)
         mu, logvar = vision.encode(obs)
         z = vision.reparameterize(mu, logvar)
@@ -87,7 +87,7 @@ def episode(params, seed, collect_data=False, max_episode_length=1000):
 
         if collect_data:
             reconstruct = vision.decode(z)
-            vae_loss = vision.get_loss(reconstruct)
+            vae_loss = vision.loss(reconstruct)
             data['observation'].append(obs)
             data['latent'].append(z)
             data['reconstruct'].append(reconstruct)
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     # epochs = 2
     # generations = 3
     # num_process = 2
-    results_dir = os.path.join(results_dir, 'control', 'generations')
+    results_dir = os.path.join(home, 'control', 'generations')
     os.makedirs(results_dir, exist_ok=True)
 
     #  need to open the Pool before importing from cma

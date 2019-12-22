@@ -1,51 +1,15 @@
-from functools import partial
-from multiprocessing import Pool
-import os
-import numpy as np
-
 import imageio
-
 import matplotlib
 matplotlib.use("agg")
 from matplotlib import pyplot as plt
+import numpy as np
+import os
 
-from PIL import Image
 from worldmodels.control.train_controller import episode
-from worldmodels.params import results_dir
+from worldmodels.params import home
 
 
-def get_controller_params(how='latest'):
-    gens = os.listdir(os.path.join(results_dir, 'control', 'generations'))
-    gens = [int(s.split('_')[-1]) for s in gens]
-    gen = max(gens) - 2 # MAGIC TODO
-    path = os.path.join(results_dir, 'control', 'generations', 'generation_{}'.format(gen), 'best-params.npy')
-    print('loading controller from {}'.format(path))
-    return np.load(path)
-
-
-if __name__ == '__main__':
-
-    best = get_controller_params()
-
-    processes = 1
-    #  dont think i need parallelization here
-    # with Pool(processes) as p:
-    #     # seeds = np.random.randint(0, 2016, processes)
-    #     seeds = [42]
-    #     results = p.map(partial(episode, best, collect_data=True, max_episode_length=1000), seeds)
-    #     rew, para, data = results[0]
-
-    seed = 11
-    res = episode(best, seed, collect_data=True, max_episode_length=1000)
-    rew, para, data = res
-
-    da = data
-    for name, arr in da.items():
-        da[name] = np.array([np.array(a) for a in arr])
-
-    for k, v in da.items():
-        print(k, v.shape)
-
+def plot_episode_data(da, rew, seed):
     labels = da['latent'][1:].reshape(-1, 32)
     preds = da['pred-latent'][:-1].reshape(-1, 32)
     error = np.mean(np.abs(labels - preds), axis=1)
@@ -80,7 +44,7 @@ if __name__ == '__main__':
         axes[1][2].set_xlim((0, len(labels)))
         axes[1][2].set_title('total-reward')
         f.suptitle('step {} - rew {:3.1f} - seed {}'.format(idx, rew, seed))
-        out_dir = os.path.join(results_dir, 'debug', 'gif')
+        out_dir = os.path.join(home, 'debug', 'gif')
         os.makedirs(out_dir, exist_ok=True)
         f_name = os.path.join(out_dir, '{}.png'.format(idx))
         f.savefig(f_name)
@@ -88,6 +52,19 @@ if __name__ == '__main__':
         image_files.append(imageio.imread(f_name))
         print(f_name)
 
-    anim_file = os.path.join(results_dir, 'debug', 'training.gif')
+    anim_file = os.path.join(home, 'debug', 'training.gif')
     print('saving to gif')
     imageio.mimsave(anim_file, image_files, duration=0.2)
+
+
+def main(seed):
+    best = get_controller_params()
+    rew, para, data = episode(
+        best, seed, collect_data=True, max_episode_length=1000
+    )
+    da = process_episode_data(data, save=True)
+    plot_episode_data(da, rew, seed)
+
+
+if __name__ == '__main__':
+    main(42)

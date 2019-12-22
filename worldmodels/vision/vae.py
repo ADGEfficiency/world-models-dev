@@ -142,7 +142,7 @@ class VAE(tf.keras.Model):
         """ latent to reconstructed """
         return self.generative_net(latent)
 
-    def get_loss(self, batch):
+    def loss(self, batch):
         means, logvars = self.encode(batch)
         latent = self.reparameterize(means, logvars)
         generated = self.decode(latent)
@@ -151,24 +151,25 @@ class VAE(tf.keras.Model):
             tf.reduce_sum(tf.square(batch - generated), axis=[1, 2, 3])
         )
 
-        kl_loss = - 0.5 * tf.reduce_sum(
+        unclipped_kl_loss = - 0.5 * tf.reduce_sum(
             1 + logvars - tf.square(means) - tf.exp(logvars),
             axis=1
         )
 
         kl_loss = tf.reduce_mean(
-            tf.maximum(kl_loss, self.kl_tolerance * self.latent_dim)
+            tf.maximum(unclipped_kl_loss, self.kl_tolerance * self.latent_dim)
         )
 
         return {
             'reconstruction-loss': reconstruction_loss,
+            'unclipped-kl-loss': unclipped_kl_loss,
             'kl-loss': kl_loss
         }
 
     def backward(self, batch):
         """ images to loss to new weights"""
         with tf.GradientTape() as tape:
-            losses = self.get_loss(batch)
+            losses = self.loss(batch)
             gradients = tape.gradient(sum(losses.values()), self.trainable_variables)
 
         self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
