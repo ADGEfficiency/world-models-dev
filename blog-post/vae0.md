@@ -1,5 +1,7 @@
 http://gregorygundersen.com/blog/2018/04/29/reparameterization/
 
+https://jaan.io/what-is-variational-autoencoder-vae-tutorial/
+
 https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73 (bit on reparameterization)
 
 [Intuitively Understanding Variational Autoencoders - Irhum Shafkat](https://towardsdatascience.com/intuitively-understanding-variational-autoencoders-1bfe67eb5daf)
@@ -10,11 +12,6 @@ papers!
 
 ### Generative models
 
-The VAE is a generative model, which learns a data generating process. Generative models can be contrasted with the more common disciminative models, which map from features to target.
-
-Generative models are the joint distribution over all variables $P(x, y)$ (the probability of $y$ and $x$) rather than the simpler conditional probability $P(y|x)$ (the probability of $y$ given $x$) learnt in by a disciminative model.
-
-Learning the joint distribution is what allows generative models to generate.  The model simulates the data generating process.
 
 The VAE can be compared with the Generative Adverserial Network (GAN).  GANs typically outperform VAEs on reconstruction quality, with a VAE providing better support over the data.
 
