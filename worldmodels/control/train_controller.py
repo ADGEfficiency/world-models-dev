@@ -91,8 +91,8 @@ def episode(params, seed, collect_data=False, episode_length=1000):
             data['observation'].append(obs)
             data['latent'].append(np.squeeze(z))
             data['reconstruct'].append(np.squeeze(reconstruct))
-            data['vae-loss-reconstruct'].append(vae_loss['reconstruction-loss']),
-            data['vae-loss-unclipped-kl'].append(vae_loss['unclipped-kl-loss'])
+            data['reconstruction-loss'].append(vae_loss['reconstruction-loss']),
+            data['unclipped-kl-loss'].append(vae_loss['unclipped-kl-loss'])
             data['action'].append(action)
             data['mu'].append(mu)
             data['logvar'].append(logvar)

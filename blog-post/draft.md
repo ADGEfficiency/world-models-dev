@@ -1,5 +1,6 @@
 Berlin photos, post onto medium, mentorcruise
 tsne! - map to 2d space!
+show final code in all the sections
 
 ## Table of contents
 
@@ -11,7 +12,7 @@ Learn inside a dream
 
 Open AI challenge
 
-show final code in all the sections
+Students (mack, samson, stas)
 
 ##  The WM agent
 
@@ -92,12 +93,9 @@ Agent five (linus quote)
 
 Reproduce paper plots
 
-
 ## Methods
 
 Each bash command
-
-
 
 ## AWS lessons 
 
@@ -122,4 +120,3 @@ Num mixes?
 CMA-ES sigma decay
 
 Really need 16 generations per population?
-- 

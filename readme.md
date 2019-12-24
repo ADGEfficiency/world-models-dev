@@ -8,10 +8,6 @@ Dependencies for this project are
 
 [Resources in rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models)
 
-Why
-- open ai
-- love the paper
-
 ```bash
 git clone https://github.com/ADGEfficiency/world-models
 ```
@@ -29,7 +25,7 @@ To run the dataset generation (tested on Ubuntu 18.04.2 -  c5.4xlarge 512 GB sto
 ```bash
 bash gym-setup.sh
 
-xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy random-rollouts
+xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy random
 
 aws s3 sync ~/world-models-experiments/random-rollouts/ s3://world-models/random-rollouts
 ```
@@ -131,7 +127,7 @@ aws s3 sync s3://world-models/vae-training/models/ ~/world-models-experiments/va
 aws s3 sync s3://world-models/memory-training/models/ ~/world-models-experiments/memory-training/models
 aws s3 sync s3://world-models/control/generations/generation_418 ~/world-models-experiments/control/generations/generation_418
 
-xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy controller-rollouts
+xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/dataset/sample_policy.py --num_process 8 --total_episodes 10000 --policy controller
 
 aws s3 sync ~/world-models-experiments/controller-rollouts/ s3://world-models/controller-rollouts
 

@@ -156,7 +156,7 @@ def rollouts(
     assert len(episodes) == len(seeds)
 
     for seed, episode in zip(seeds, episodes):
-        if policy == 'controller-rollouts':
+        if policy == 'controller':
             params = get_controller_params(controller_generation)
             results = controller_rollout(
                 params,
@@ -165,7 +165,7 @@ def rollouts(
             )
 
         else:
-            assert policy == 'random-rollouts'
+            assert policy == 'random'
             results = random_rollout(
                 env=env,
                 episode_length=episode_length,
@@ -189,7 +189,7 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', default=10, nargs='?', type=int)
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
     parser.add_argument('--start_episode', default=0, nargs='?', type=int)
-    parser.add_argument('--policy', default='random-rollouts', nargs='?')
+    parser.add_argument('--policy', default='random', nargs='?')
     parser.add_argument('--controller-generation', default=0, nargs='?', type=int)
     parser.add_argument('--dtype', default='tf-records', nargs='?')
     args = parser.parse_args()
@@ -204,7 +204,7 @@ if __name__ == '__main__':
     rollout_end = episodes_per_process
     assert rollout_end <= episodes_per_process
 
-    results_dir = os.path.join(home, args.policy)
+    results_dir = os.path.join(home, args.policy+'-rollouts')
     os.makedirs(results_dir, exist_ok=True)
 
     env = CarRacingWrapper
