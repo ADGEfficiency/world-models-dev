@@ -139,12 +139,10 @@ if __name__ == '__main__':
     generations = 500
     popsize = 64
     epochs = 16
-    num_process = 16
 
     # popsize = 2
     # epochs = 2
     # generations = 3
-    # num_process = 2
     results_dir = os.path.join(home, 'control', 'generations')
     os.makedirs(results_dir, exist_ok=True)
 

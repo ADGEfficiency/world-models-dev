@@ -1,74 +1,32 @@
----
-title: 'World Models'
-date: 2019-12-21
-categories:
-  - Python, Machine Learning, Reinforcement Learning
-excerpt: Re.
-
----
-
-## Vision
-
-A Variational Autoencoder (VAE) forms the vision of the World Models agent.  
-
-The VAE is used to provide a compressed representation of the environment observation $x$ as a latent space $z$.
-
-The VAE is a likelihood maximization model - maximizing the joint probability of an image $x$ and a latent state $z$:
-
-$$P(x,z)$$
-
-### Generative models
-
-The VAE is generative - learning the joint distribution over all variables $P(x, y)$.
-
-Generative models learn the data generating process.  This can be directly contrasted with disciminative models, which learn simpler conditional probability $P(y \mid x)$ (the probability of $y$ given $x$).
-
-Learning the joint distribution is allows generative models to generate.
-
-## VAE structure
-
-The VAE is formed of three components - an encoder, a latent space and a decoder.
-
 ### Encoder
 
-The primary function of the encoder is **recognition**.  The encoder is responsible for recognizing and encoding hidden **latent variables**.  Latent variables are hidden.  For a given sample $x$ we don't know the values of the latent variables.  We don't even need to confirm that they exist!
+The primary function of the encoder is **recognition**.  The encoder is responsible for recognizing and encoding hidden **latent variables**.  Latent variables are hidden - for a given sample $x$ we don't know the values of the latent variables.  We don't even need to confirm that they exist!
 
-In the `Car-Racing-v0` environment, latent variables could be if the car is off the track, or if the track is bending.  
+In the `Car-Racing-v0` environment, possible latent variables could be if the car is off the track, or if the track is bending.  
 
-The encoder is built from convolutional blocks that map from the input image ($x$) (60 x 80 x 3) to statistics (means & variances) of the latent space. 
+The encoder in a VAE maps from a sample $x$ to a **distribution** over the latent space.  The latent space distribution is one indepedent Gaussian for each dimension of the latent space.  The VAE uses a latent space size of 32.  This means the encoder outputs 64 numbers - two statistics (mean & variance) per latent space dimension.  Enforcing a Gaussian prior over the latent space will limit how expressive our latent space distribution is, but improves it's robustness.
 
-Constraining the size of the latent space (length 32) is how auto-encoders learn an efficient compression of images.  The VAE takes this one step further (see below).
-
-The statistics parameterized by the encoder are used to form a distribution over the latent space - formed from indepedent Gaussians.  Enforcing a Gaussian prior over the latent space will limit how expressive our latent space distribution is, but improves it's robustness.
+The encoder is built from convolutional blocks that map from the input image ($x$) (60 x 80 x 3) to statistics of the latent space (length 64).  A latent space $z$ can be sampled from this distribution.
 
 $$z \sim P(z \mid x)$$
 
 $$z \sim P(N(\mu, \sigma))$$
 
-We can sample from this latent space distribution.  Once a latent space has been sampled, the decoder uses deconvolutional blocks to reconstruct the original image $x$ into $x'$.
+Constraining the size of the latent space (length 32) is how auto-encoders are forced to learn an efficient compression of images.  All of the information needed to reconstruct a sample $x$ must exist in only numbers!
 
-This the basic structure of a VAE:
-- encode an image into a distribution over a low dimensional latent space
-- sample a latent space $z \sim p(z)$
-- decode the sampled latent space into a reconstructed image $x \sim p(x \mid z)$
-
-We can rewrite the joint probability of our VAE as (check)
-
-$p(x,y) = p(x \mid z)p(z)$
-
-$z \sim p(z)$
-
-$x' \sim p(x \mid z)$
-
-Note that this describes only the latent space and encoder - we don't need the encoder to generate new images (only to train).
-Note that we can generate new images by following only steps 1 & 2.
+Once a latent space has been sampled, the decoder uses deconvolutional blocks to reconstruct the original image $x$ into $x'$.  In the World Models agent, we don't use the reconstruction for control - we are interested in the lower dimensional latent space representation $z$.  It is more useful for control.
 
 ### Training the VAE
 
-Before we detail the specific contributions of the VAE, it is worth reflecting on what properties we want from a generative model:
+Before we detail the specific contributions of the VAE, it is worth reflecting on what properties we want from a generative model in general:
 - high quality reconstructions
 - ability to sample new images
 - continuous and dense latent space
+- meaningful interpolation
+
+When it comes to the World Models VAE, we are particularly interested in the quality of the latent space.
+
+
 
 High quality reconstructions mean that the VAE has learnt an efficient encoding of a given sample image $x$.  
 
@@ -101,8 +59,7 @@ Remember that the loss function above is the result of minimizing the KLD betwee
 
 The final step is writing this in code (autodiff) -> grads
 
-
-
+VAE being stochastic == more robust controller
 
 ## Understanding the VAE loss function
 
@@ -125,7 +82,6 @@ which is normal -> log likelihood of gaussian distribution and L2 loss
 https://stats.stackexchange.com/questions/288451/why-is-mean-squared-error-the-cross-entropy-between-the-empirical-distribution-a/288453
 
 Any loss consisting of a negative log-likelihood is a cross-entropy between the empirical distribution defined by the training set and the probability distribution defined by model. For example, mean squared error is the cross-entropy between the empirical distribution and a Gaussian model.
-
 
 The second is the ability to generate new samples.  Generating new samples requires a latent space that is continuous, with samples that are close together in the latent space producing similar images when decoded.  This requirement is a challenge in traditional autoencoders, which learn spread out latent spaces.
 

@@ -2,6 +2,13 @@ Berlin photos, post onto medium, mentorcruise
 tsne! - map to 2d space!
 show final code in all the sections
 
+code snippets everywhere!
+
+visalization of rollouts
+- random
+- halfway
+- final
+
 ## Table of contents
 
 ## Motivations
@@ -19,7 +26,7 @@ Students (mack, samson, stas)
 The three components
 
 Compression
-- why = decisions
+- why = decisions (business decisions)
 - image to z
 - future to h
 
