@@ -1,14 +1,13 @@
-from PIL import Image
-
 from gym.spaces.box import Box
 from gym.envs.box2d.car_racing import CarRacing
 import numpy as np
+from PIL import Image
 
 
 def process_frame(
     frame,
-    screen_size=None,
-    vertical_cut=-1,
+    screen_size=(64, 64),
+    vertical_cut=84,
     max_val=255,
     save_img=False
 ):
@@ -38,6 +37,9 @@ class CarRacingWrapper(CarRacing):
     def step(self, action, save_img=False):
         """ one step through the environment """
         frame, reward, done, info = super().step(action)
+
+        #  needed to get image rendering
+        #  https://github.com/openai/gym/issues/976
         self.viewer.window.dispatch_events()
 
         obs = process_frame(

@@ -4,6 +4,23 @@ show final code in all the sections
 
 code snippets everywhere!
 
+put key / important references everywhere
+
+pre knowledge - conditional, marginal distributions, kld, 
+
+scope!
+- baselines
+- doom
+
+enjoyed working with images
+
+images & examples for everything!
+
+ecosystem
+- original paper
+
+Dimensionality reduction is so often the primary function of machine learning that it is a useful working definition of the entire field.
+
 visalization of rollouts
 - random
 - halfway
@@ -30,7 +47,12 @@ Compression
 - image to z
 - future to h
 
-### VAE, MEM, CONTROL
+### VAE
+
+- draft
+- images
+
+### MEM, CONTROL
 
 ## Timeline
 
@@ -127,3 +149,9 @@ Num mixes?
 CMA-ES sigma decay
 
 Really need 16 generations per population?
+
+## What did I learn
+
+AWS
+
+VAE, MDN, evolution

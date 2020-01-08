@@ -1,232 +1,449 @@
 ---
-title: 'World Models (2018) Reimplementation'
+title: 'Reimplementing World Models'
 date: 2019-12-21
 categories:
   - Python, Machine Learning, Reinforcement Learning
-excerpt: Taking the advice of Open AI and building  a high quality implementation in TensorFlow 2.
+excerpt: A TensorFlow 2.0 reimplementation of the 2018 paper by Ha & Schmidhuber.
 
 ---
 
+
+# The environment
+
+## Working with `car-racing-v0`
+
+I used the same version of OpenAI gym as the paper (`gym==0.9.4`).
+
+In the `car-racing-v0` environment, the agents **observation** is raw image pixels (96, 96, 3) - this is cropped and resized to (64, 64, 3).
+
+<center>
+	<img src="/assets/world-models/f1-final.png">
+	<figcaption>The raw observation (96, 96, 3) - the resized observation (64, 64, 3) - the learnt latent variables (32,)</figcaption>
+  <div></div>
+</center>
+
+Of particular importance is using the following in the `reset()` and `step()` methods ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
+
+```python
+#  do this before env.step(), env.reset()
+self.viewer.window.dispatch_events()
+```
+
+The **action** has three continuous dimensions - `[steering, gas, break]` (could give min / max).
+
+The **reward** function is 
+- -0.1 for each frame
+- +1000 / N for each tile visited (N = total tiles on track)
+
+Evolution = only learn from total episode reward
+
+Of particular interest is a hyperparameter controlling the episode length (known more formally as the horizon).  This is set to 1,000 throughout the paper codebase.  Changing this can have interesting effects on agent performance.
+
+Below the code for sampling environment observations is given in full ([see the source here](https://github.com/ADGEfficiency/world-models-dev/blob/master/worldmodels/dataset/car_racing.py)):
+
+```python
+# worldmodels/dataset/car_racing.py
+
+from gym.spaces.box import Box
+from gym.envs.box2d.car_racing import CarRacing
+import numpy as np
+from PIL import Image
+
+
+def process_frame(
+    frame,
+    screen_size=(64, 64),
+    vertical_cut=84,
+    max_val=255,
+    save_img=False
+):
+    """ crops, scales & convert to float """
+    frame = frame[:vertical_cut, :, :]
+    frame = Image.fromarray(frame, mode='RGB')
+
+    obs = frame.resize(screen_size, Image.BILINEAR)
+    return np.array(obs) / max_val
+
+
+class CarRacingWrapper(CarRacing):
+    screen_size = (64, 64)
+
+    def __init__(self, seed=None):
+        super().__init__()
+        if seed:
+            self.seed(int(seed))
+
+        #  new observation space to deal with resize
+        self.observation_space = Box(
+                low=0,
+                high=255,
+                shape=self.screen_size + (3,)
+        )
+
+    def step(self, action, save_img=False):
+        """ one step through the environment """
+        frame, reward, done, info = super().step(action)
+        self.viewer.window.dispatch_events()
+
+        obs = process_frame(
+            frame,
+            self.screen_size,
+            vertical_cut=84,
+            max_val=255.0,
+            save_img=save_img
+        )
+
+        return obs, reward, done, info
+
+    def reset(self):
+        """ resets and returns initial observation """
+        raw = super().reset()
+
+        #  needed to get image rendering
+        #  https://github.com/openai/gym/issues/976
+        self.viewer.window.dispatch_events()
+
+        return process_frame(
+            raw,
+            self.screen_size,
+            vertical_cut=84,
+            max_val=255.0,
+            save_img=False
+        )
+```
+
+# The Three Components - Vision, Memory and Control
+
+## All together now!
+
+First introduce all three together
+
 ## Vision
 
-A Variational Autoencoder (VAE) forms the vision of the World Models agent.  
+### Why do we need to see
 
-Before we detail the specific contributions of the VAE, it is worth reflecting on what properties we want from a generative model in general:
-- high quality reconstructions
-- ability to sample new images
-- continuous and dense latent space
-- meaningful interpolation
+Why vision is important?  The most common operation in modern computer vision is **dimensionality reduction**.  
 
-When it comes to the World Models VAE, we are particularly interested in the quality of the latent space.
+Why is dimensionality reduction important?  **Decisions are easier in low dimensional spaces.  Prediction is also easier**!
 
+Let's take our `car-racing-v0` environment .  A low dimensional representation of the environment observation might look something like:
 
-In the `car-racing-v0` environment, the agents observation is raw image pixels.
+```python
+observation = [
+	on_road = 1,
+	corner_to_the_left = 1,
+	corner_to_the_right = 0
+]
+```
 
-The `car-racing-v0` environment requires an agent that can see.
+Using these three numbers, we could imagine deriving a control policy.  Try to do this with 27,648 numbers arranged in a shape (96, 96, 3)!
 
-Learning from high dimensional data is challenging, but it is well within the wheelhouse of modern machine learning.  2013 Deep Mind.
+We have a definition of vision as reducing dimensionality.  How does our agent see?
 
-The VAE is used to provide a compressed representation of the environment observation $x$ as a latent space $z$.
+### What the controller sees
 
-The VAE is a generative model that learns the data generating process.
+The vision of the World Models agent reduces the environment observation $x$ (96, 96, 3) into a low dimensional representation $z$ (32,) known as the **latent space**.
 
-Learning the joint distribution is allows generative models to generate.
+The latent representation is **hidden**.  It is unobserved - we have no labels for these 32 variables.  The controller uses the latent representation $z$ as one of its inputs.  It never uses $x$ (or it's reconstruction $x'$) directly.
 
-The data generating process is the joint distribution over all variables $P(x, y)$ (the probability of $x$ and $y$ occuring together).  This can be directly contrasted with disciminative models, which learn the simpler conditional probability $P(y \mid x)$ (the probability of $y$ given $x$).
+How do we learn this latent representation if we don't have examples?  One technique is a Variational Autoencoder.
 
-Any vision == dim reduction
+## The Variational Autoencoder
 
-A common disriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a class prediction.  The output exist in a lower dimensional space.
+A **Variational Autoencoder (VAE)** forms the vision of our agent.
 
-World Models uses dimensionality reduction in the same way - to reduce high dimensional data into a lower dimensional space that is easier to take actions in.
+The VAE is a **generative** model that learns the data generating process.  The data generating process is $P(x,z)$ - the joint distribution over our data (the probability of $x$ and $z$ occurring together).  
 
-The VAE is used to provide a compressed representation of the environment observation $x$ as a latent space $z$.
+The VAE uses **likelihood maximization** to learn this joint distribution $P(x,z)$.  Likelihood maximization is the process of maximizing the similarity between two distributions.  In our case these distributions are the distribution over our training data (the data generating process) and our parametrized approximation (a convolutional neural network).
 
-The VAE is a likelihood maximization model - maximizing the joint probability of an image $x$ and a latent state $z$:
+We can decompose this joint distribution using the Multiplication Rule of probability:
 
-$$P(x,z)$$
+$$P(x, z) = P(x \mid z) \cdot P(z)$$
+
+This decomposition describes the entire generative process:
+- first sample a latent representation
+
+$$z \sim P(z)$$
+
+- then sample a generated data point $x'$, using the conditional probability $P(x \mid z)$
+
+$$x' \sim P(x \mid z)$$
+
+These sampling and decoding steps describe the generation of new data $x'$.  It doesn't describe the entire structure of the VAE (more on that later).
+
+Where to generative models fit in the context of other supervised learning methods?
+
+### Generative versus discriminative models
+
+All approaches in supervised learning can be categorized into either generative or discriminative models.
+
+We have seen that generative models learn a **joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models allow generation, as we can sample from the learnt joint distribution.
+
+Discriminative models learn a **conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models are used for prediction, using observed $z$ to predict $x$.  This is simpler than generative modelling.
+
+A common discriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a predicted class.
+
+Now we understand the context of generative models in supervised learning, we can look at the context of the VAE within generative models.
+
+### The VAE in context
+
+The VAE sits alongside the Generative Adversarial Network (GAN) as the state of the art in generative modelling.  GANs typically outperform VAEs on reconstruction quality, with the VAE providing better support over the data.  By support, we mean the number of different values a variable can take.
+
+<center>
+	<img src="/assets/world-models/gan.png">
+	<figcaption>
+		Progress in GANS - <a href="https://www.iangoodfellow.com/slides/2019-05-07.pdf">Adverserial Machine Learning - Ian Goodfellow - ICLR 2019</a>
+	</figcaption>
+  <div></div>
+</center>
+
+The VAE has less in common with classical (such as sparse or denoising) autoencoders, which both require the use of the computationally expensive Markov Chain Monte Carlo.
+
+### What makes the VAE a good choice for the World Models agent?
+
+A major benefit of generative modelling is the ability to generate new samples $x'$.  Yet our World Models agent never uses $x'$ (whether a reconstruction or a new sample).
+
+The role of the VAE in our agent is to provide a compressed representation $z$ by learning to encode and decode a latent space.
+
+The lower dimensional latent space is easier for our memory and controller to work with.
+
+What qualities do we want in our latent space?  One is **meaningful grouping**.  This requirement is a challenge in traditional autoencoders, which tend to learn spread out latent spaces.
+
+Meaningful grouping means that similar observations exist in the same part of the latent space, with samples that are close together in the latent space producing similar images when decoded.  This grouping means that even observations that the agent hadn't seen before could be responded to the same way.
+
+Meaningful grouping also allows **interpolation** - meaning that we can understand observations we haven't seen before, if they are encoded close to observations we have seen before.
+
+So how do we get meaningful encoding of an observation?  One technique is to constrain the size of the latent space (32 variables for the World Models VAE).  The VAE puts even more effort into TODO
 
 ## VAE structure
 
 The VAE is formed of three components - an encoder, a latent space and a decoder.
 
+f2
+
 ### Encoder
 
-The primary function of the encoder is **recognition**.  The encoder is responsible for recognizing and encoding hidden **latent variables**.
+The primary function of the encoder is **recognition**.  The encoder is responsible for recognizing and encoding the hidden **latent variables**.
 
-For a given sample $x$ we don't know the values of the latent variables.  We don't even need to confirm that they exist!
-
-In the `Car-Racing-v0` environment, latent variables could be if the car is off the track, or if the track is bending.  
-
-The encoder is built from convolutional blocks that map from the input image ($x$) (60 x 80 x 3) to statistics (means & variances) of the latent variables (length 64 - 2 per latent space dimension).
+The encoder is built from convolutional blocks that map from the input image ($x$) (64, 64, 3) to statistics (means & variances) of the latent variables (length 64 - 2 statistics per latent space variable).
 
 ### Latent space
 
-Constraining the size of the latent space (length 32) is one way auto-encoders are forced to learn an efficient compression of images.  All of the information needed to reconstruct a sample $x$ must exist in only numbers!
+Constraining the size of the latent space (length 32) is one way auto-encoders learn efficient compression of images.  All of the information needed to reconstruct a sample $x$ must exist in only 32 numbers!
 
-The statistics parameterized by the encoder are used to form a distribution over the latent space - formed from indepedent Gaussians.  Enforcing a Gaussian prior over the latent space will limit how expressive our latent space distribution is, but improves it's robustness.
+The statistics parameterized by the encoder are used to form a distribution over the latent space - a diagonal Gaussian.  A diagonal Gaussian is a muntivariate Gaussian with a diagonal covariance matrix.  This means that each variable is independent.
+
+(is this enforcing a gaussian prior or posterior?)
+
+This parameterized Gaussian is an approximation.  Using it will limit how expressive our latent space is, 
 
 $$z \sim P(z \mid x)$$
 
-$$z \sim P(N(\mu, \sigma))$$
+$$ z \mid x \approx \mathbf{N} (\mu_{\theta}, \sigma_{\theta}) $$
 
+$$z \sim P(\mathbf{N} (\mu_{\theta}, \sigma_{\theta}))$$
 
+We can sample from this latent space distribution, making the encoding of an image $x$ stochastic.
+
+Because the latent space fed to the decoder is spread (controlled by the parameterized variance of the latent space), it learns to decode a range of variatons for a given $x$.
+
+Ha & Schmidhuber propose that the stochastic encoding leads to a more robust controller in te agent.
 
 ### Decoder
 
-We can sample from this latent space distribution.  Once a latent space has been sampled, the decoder uses deconvolutional blocks to reconstruct the original image $x$ into $x'$.
+The decoder uses deconvolutional blocks to reconstruct the sampled latent space $z$ into $x'$.  In the World Models agent, we don't use the reconstruction $x'$ - we are interested in the lower dimensional latent space representation $z$.
 
-In the World Models agent, we don't use the reconstruction for control - we are interested in the lower dimensional latent space representation $z$.  It is more useful for control.
+The agent uses the latent space is used in two ways
+- directly in the controller
+- as features to predict $z'$ in the memory
 
-The reason that we can use noise to generate images is that we pass that noise through the complex function that is the decoder.
+But we aren't finished with the VAE yet - in fact we have only just started.
 
-## The forward passes
+## The three forward passes
 
-### Forward pass - reconstruction
+Now that we have the structure of the VAE mapped out, we can be specific about how we pass data through the model.
 
-- encode an image into a distribution over a low dimensional latent space
-- sample a latent space $z \sim p(z)$
-- decode the sampled latent space into a reconstructed image $x \sim p(x \mid z)$
+### Compression 
 
-### Forward pass - generation
+$x$ -> $z$
 
-- sample a latent space $z \sim p(z)$
-- decode the sampled latent space into a reconstructed image $x \sim p(x \mid z)$
+- encode an image $x$ into a distribution over a low dimensional latent space
+- sample a latent space $z \sim E_{\theta}(z \mid x)$
 
-We can rewrite the joint probability of our VAE as (check)
+### Reconstruction
 
-$p(x,y) = p(x \mid z)p(z)$
+$x$ -> $z$ -> $x'$
 
-$z \sim p(z)$
+- encode an image $x$ into a distribution over a low dimensional latent space
+- sample a latent space $z \sim E_{\theta}(z \mid x)$
+- decode the sampled latent space into a reconstructed image $x' \sim D_{\omega}(x' \mid z)$
 
-$x' \sim p(x \mid z)$
+### Generation
 
-Note that this describes only the latent space and encoder - we don't need the encoder to generate new images (only to train).
+$z$ -> $x'$
 
+- sample a latent space $z \sim P(z)$
+- decode the sampled latent space into a reconstructed image $x' \sim D_{\omega}(x' \mid z)$
 
 ## The backward pass
 
-We do forward passes to compress or to generate.  
+We do the backward pass to learn - maximizing the joint likelihood of an image $x$ and the latent space $z$.
 
-We do the backward pass to learn - maximizing the likelihood (joint prob) of an image $x$ and the latent space $z$.
+Let's start with the encoder. We can write the encoder $E_{\theta}$ as model that given an image $x$, is able to sample the latent space $z$.  The encoder is parameterized by weights $\theta$:
 
-Let's start with the encoder. We can write the encoder $E$ as model that given an image $x$, is able infer the statistics of the latent space $z$:
+$$ z \sim E_{\theta}(z \mid x) $$
 
-$$ E(z \mid x) $$
+The encoder is an approximation of the true posterior $P(z \mid x)$ (the distribution that generated our data).  Bayes Theorem shows us how to decompose the true posterior:
 
-$$ E(N(\mu_{z}, \sigma_{z}) \mid x) $$
+$$P(z \mid x) = \dfrac{P(x \mid z) \cdot P(z)}{P(x)}$$
 
-Bayes Theorem shows us how to decompose the encoder:
+The key challenge is calculating the posterior probability of the data $P(x)$ - this requires marginalizing out the latent variables. Evaluating this is exponential time:
 
-$$p(z \mid x) = \dfrac{p(x \mid z) \cdot p(z)}{p(x)}$$
+$$P(x) = \int P(x \mid z) \cdot P(z) \, dz$$
 
-The key challenge is calculating the probability of the data $p(x)$ - this requires evaluating an exponential time integral.  
+The VAE sidesteps this expensive computation by *approximating* the true posterior $P(z \mid x)$ using a diagonal Gaussian:
 
-The VAE sidesteps this by approximating the true posterior $p(z \mid x)$ using Gaussians.  
+$$ x \mid z \sim \mathbf{N} \Big(\mu_{\theta}, \sigma_{\theta}\Big) $$
 
-This is the **varational inference** part of the VAE.  Now that we have made a decision about how to approximate the latent space distribution, we want to think about how to bring our contstrained latent space closer to the true posterior $p(z \mid x)$.
+$$P(x \mid z) \approx E(x \mid z ; \theta) = \mathbf{N} \Big(x \mid \mu_{theta}, \sigma_{\theta}\Big)$$
 
-In order to minimize the difference between our tow distributions, we need a distance measure of how our encoder approximates the true posterior $p(z 
-/mid x)$.
+This approximation is **varational inference** - using a family of distributions (in this case Gaussian) to approximate the latent variables.  Using variational inference is is a key contribution of the VAE.
 
-We can measure this using the Kullback-Leibler divergence (KLD).
+Now that we have made a decision about how to approximate the latent space distribution, we want to think about how to bring our parametrized latent space $E_{\theta}(z \mid x)$ closer to the true posterior $P(z \mid x)$.
 
-$ KLD (q(z \mid x) \mid \mid e(z \mid x)) = E_p[log e(z \mid x)] - E_p[log p(x, z)] + log p(x)$
+In order to minimize the difference between our two distributions, we need way to measure the difference.
 
-The KLD has a number of interpretations:
-- measures the information lost when using q to approximate p
+The VAE uses a Kullback-Leibler divergence ($\mathbf{KLD}$).  The $\mathbf{KLD}$ has a number of interpretations:
+- measures the information lost when using one distribution to approximate another
 - measures a non-symmetric difference between two distributions
+- measures how close distributions are
 
-We now have a loss function - a difference between our parameterized latent space distribution $E(z \mid x)$ and the true distribution $p(z \mid x)$.
+$$\mathbf{KLD} \Big (E_{\theta}(z \mid x) \mid \mid P(z \mid x) \Big) = \mathbf{E}_{z \sim E_{\theta}} \Big[\log E_{\theta}(z \mid x) \Big] - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log P(x, z) \Big] + \log P(x)$$
 
-Now for another trick from the VAE, which results in replacing computing and minimizing this KLD with Evidence Lower Bound (ELBO) maximization, .  Expanding the notation to show the parameters of the encoder ($\theta$) and the decoder ($\omega$):
+This $\mathbf{KLD}$ is something that we can minimize - it is a loss function.  But our exponential time $P(x)$ (in the form of $\log P(x)$) has reappeared!
 
-$ELBO(\theta, \omega) =  E_{z \sim e_{\theta}(z \mid x)} [\log d(x \mid z)] $
+Now for another trick from the VAE.  We will make use of
+- the Evidence Lower Bound ($\mathbf{ELBO}$)
+- Jensen's Inequality
 
-The last step is to convert the ELBO maximization into the more familiar loss function minimization, which results in the VAE loss function's final form:
+The $\mathbf{ELBO}$ is given as the expected difference in log probabilities when we are samlping our latent vectors from our encoder $E_{theta}(z \mid x)$:
 
-$ L(\theta, \omega) = - above $
+$$\mathbf{ELBO}(\theta) = \mathbf{E}_{z \sim E_{\theta}} \Big[\log P(x,z) - \log E_{\theta}(z \mid x) \Big]$$
 
-Remember that the loss function above is the result of minimizing the KLD between our encoder $e(z \mid x)$ and the true distribution $p(z \mid x)$.  What we have is a result of maximizing the log-likelihood of the data.
+Combining this with our $\mathbf{KLD}$ we can form the following:
 
+$$\log P(x) = \mathbf{ELBO}(\theta) + \mathbf{KLD} \Big (E_{\theta}(z \mid x) \mid \mid P(z \mid x) \Big) $$
 
-### First term
+Jensen's Inequality tells us that the $\mathbf{KLD}$ is always greater than or equal to zero. Because $\log P(x)$ is constant (and does not depend on our parameters $\theta$), a large $\mathbf{ELBO}$ requires a small $\mathbf{KLD}$ (and vice versa).
 
-log prob == pixel wise
+Remember that we have a $\mathbf{KLD}$ we want to minimize!  We have just shown that we can do this by ELBO maximization.  After a bit more mathematical massaging (see the excellent [Altosaar - Tutorial - What is a variational autoencoder?](https://jaan.io/what-is-variational-autoencoder-vae-tutorial/)) we arrive at:
 
-High quality reconstructions mean that the VAE has learnt an efficient encoding of a given sample image $x$.  
+$$ \mathbf{ELBO}(\theta, \omega) = \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega}(x' \mid z) \Big] - \mathbf{KLD} \Big (E_{\theta}(z \mid x) \mid \mid P(z) \Big) $$
 
-When we are training the encoder, the goal is to produce a model that learns $P(z \mid x)$ - a model that is able to infer good values of the latent variables given our observed data.
+Note the appearance of our decoder $D_{\omega}(x \mid z)$.  The decoder is used to approximate the true posterior $P(x' \mid z)$ - the conditional probability distribution over the reconstruction of latent variables into a generated $x'$ (given $x$).
 
+The last step is to convert this $\mathbf{ELBO}$ maximization into a more familiar loss function minimization.  We now have the VAE loss function's final mathematical form - in all it's tractable glory:
 
+$$ \mathbf{LOSS}(\theta, \omega) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
 
+The loss function has two terms - the log probability of the reconstruction (aka the decoder) and a $\mathbf{KLD}$ between the latent space (sampled from our encoder) and the latent space prior $P(z)$.
 
+Remember that the loss function above is the result of minimizing the $\mathbf{KLD}$ between our encoder $E_{\theta}(z \mid x)$ and the data generating distribution $P(z \mid x)$.  What we have is a result of maximizing the log-likelihood of the data.
 
+## Implementing the loss function in code
 
+Although our loss function is in it's final mathematical form, we will make three more modifications before we implement it in code:
+- convert the log probability of the decoder into a pixel wise reconstruction loss
+- use a closed form solution to the $\mathbf{KLD}$ between our encoded latent space distribution and the prior over our latent space $P(x)$
+- refactor the randomness using reparameterization
 
-Pixel wise loss stuff
+We will look at these two modifications in terms of the two terms in our loss function (??)
 
-https://stats.stackexchange.com/questions/323568/help-understanding-reconstruction-loss-in-variational-autoencode://stats.stackexchange.com/questions/323568/help-understanding-reconstruction-loss-in-variational-autoencoder
+### First term - reconstruction loss
 
-This can be done because
+$$ - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] $$
 
-$x \mid z \sim N(u, sig)$
+The first term in the VAE loss function is the log-likelihood of reconstruction - given latent variables $z$, the distribution over $x'$.  The latent variables are sampled from our encoder (hence the expectation $\mathbf{E}_{z \sim E_{\theta}}$).
 
-which is normal -> log likelihood of gaussian distribution and L2 loss
+Minimizing the negative log-likelihood is equivilant to likelihood maximization.  In our case, the likelihood maximization maximizies the similarity between  the distribution over our training data $P(x \mid z)$ and our parametrized approximation.
 
-https://stats.stackexchange.com/questions/288451/why-is-mean-squared-error-the-cross-entropy-between-the-empirical-distribution-a/288453
+Section 5.1 of the fountional [Deep Learning textbook](http://www.deeplearningbook.org/)  that for a Gaussian approximation, maximizing the log-likelihood is equivilant to minimizing mean square error ($\mathbf{MSE}$):
 
-Any loss consisting of a negative log-likelihood is a cross-entropy between the empirical distribution defined by the training set and the probability distribution defined by model. For example, mean squared error is the cross-entropy between the empirical distribution and a Gaussian model.
-In practice this term is implemented using a pixel wise reconstruction loss.  https://stats.stackexchange.com/questions/288451/why-is-mean-squared-error-the-cross-entropy-between-the-empirical-distribution-a/288453
+$$\mathbf{MSE} = \frac{1}{n} \sum \Big( \mid \mid x' - x \mid \mid \Big)^{2} $$
 
-This leads to the first term in the VAE loss function - the negative log likelihood of the decoder, when sampling from a latent space parameterized by the encoder:
+(Remember we sample our latent variables from our encoder, which is a Gaussian approximation).
 
-### Second term
+In practice this term is often implemented in code as a **pixel wise reconstruction loss** (also known as an L2 loss):
 
-Plot of my images in 2D latent space tsne (do by hand)
+```python
 
-The most useful interpretation of the second term in the VAE loss function is compression.
+```
 
-Generating new samples requires a latent space that is continuous, with samples that are close together in the latent space producing similar images when decoded.  This requirement is a challenge in traditional autoencoders, which learn spread out latent spaces.
+High quality reconstructions mean that the VAE has learnt an efficient encoding of a given sample image $x$.
 
-Compression of the latent space allows interpolation.
+### Second term - regularization
 
-The VAE tackles this problem by making the encoding stochastic.  Because the latent space fed to the decoder is spread (controlled by the parameterized variance of the latent space distribution), it learns to decode a range of variatons for a given $x$.
+$$ \mathbf{LOSS}(\theta, \omega) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
 
-Thus the latent space being stochastic helps to make it continuous.  This latent space also requires compression.  Traditional autoencoders compress the latent space by constraining it to a fixed length.  The VAE takes it one step further by including second term in the loss function - a Kulback-Lieber divergence (KLD).
+The intuition of the second term in the VAE loss function is compression or regularization.
 
-The KLD is a measurement of how different two probability distributions are (note I didn't say distance!).  But which two?
+The second term in the VAE loss function is the $\mathbf{KLD}$ between the and the latent space prior $P(z)$.  
 
-The first term is the latent space - intutive as we want to improve the quality of the latent space.
+We haven't yet specified what the prior over the latent space should be.  A convenient choice is a **Standard Normal** - a Gaussion with a mean of zero, variance of one.
 
-The second term in the VAE KLD is the standard normal distribution (a normal with mean of zero, variance of one).  
-
-Minimizing the KLD means we are trying to make the latent space look like random noise.  It encourages putting encodings near the center of the latent space. 
+Minimizing the $\mathbf{KLD}$ means we are trying to make the latent space look like random noise.  It encourages putting encodings near the center of the latent space.
 
 The KL loss term further compresses the latent space.  This compression means that using a VAE to generate new images requires only sampling from noise!  This ability to sample without input is the definition of a generative model.
 
-## Stochastic encoding
+Because we are using Gaussians for the encoder $E_{theta}(z \mid x)$ and the latent space prior $ P(z) = \mathbf{N} (0, 1) $, the $\mathbf{KLD}$ has closed form solution ([see Odaibo - Tutorial on the VAE Loss Function](https://arxiv.org/pdf/1907.08956.pdf)).
 
-Interperolation further helped by 
+$$\mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big) = \frac{1}{2} \Big( 1 + \log(\sigma_{\theta}^{2}) - \sigma_{\theta}^{2} - \mu_{\theta} \Big)$$
 
-VAE being stochastic == more robust controller
+This is how the $\mathbf{KLD}$ is implemented in the VAE loss:
+
+
+```python
+
+```
+
+A note on the use of $\log \sigma^{2}$ - we force our network to learn this by taking the exponential later on in the program:
+
+```python
+
+```
 
 ### Reparameterization trick
 
-reparameterization (allows stochastic gradients)
-- 2.3 2019, 4 in 2016
+Because our encoder is stochastic, we need one last trick - a rearrangement of the model architecture, so that we can backprop through it.  This is the **reparameterization trick**, and results in a latent space architecture as follows:
 
-The VAE is therefore stochastic - the latent space is sampled from a distribution parameterized by the encoder.  This sampling requires a reorganization of the latent space from within the model internals to an input to the model.
+fig - 2.3 2019, 4 in 2016
 
-The reparameterization trick results in a latent space architecture as follows:
+$$ n \sim \mathcal{N}(0, 1) $$
 
-$ z = \sigma (x) \cdot n + \mu (x) $
+$$ z = \sigma_{theta} (x) \cdot n + \mu_{theta} (x) $$
 
-$ n \sim \mathcal{N}(0, 1) $
+After the refactor of the randomness, we can now take a gradient of our loss function and train the VAE.
 
-After the refactor of the randomness, we can now take a gradient of our loss function and train the VAE.  Remember how the VAE integrates into the larger World Models agent - we never use the reconstruction - we only want the latent space.
+## Vision - Summary
 
+The contributions of the VAE are:
+- variational inference to approximate
+- compression / regularization of the latent space using a KLD between our learnt latent space and a prior $P(z) = \mathbf{N} (0, 1)$
+- stochastic encoding of a sample $x$ into the latent space $z$ and into a reconstruction $x'$
 
+```python
+# worldmodels/vision/vae.py
+
+# worldmodels/vision/train_vae.py
+```
+
+## Memory
+
+$$ P(z' | a, z, h) $$
+
+## Control
+
+# Practical implementation
 
 
 
