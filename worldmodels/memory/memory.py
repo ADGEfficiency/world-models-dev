@@ -1,6 +1,7 @@
 import math
-import numpy as np
 import os
+
+import numpy as np
 import tensorflow as tf
 
 # https://github.com/hardmaru/WorldModelsExperiments/blob/master/carracing/rnn/rnn.py
@@ -81,7 +82,6 @@ class LSTM():
 
     def get_zero_hidden_state(self, inputs):
         #  inputs dont matter here - but batch size does!
-        # inputs = np.zeros(self.input_dim)
         return [
             tf.zeros((inputs.shape[0], self.nodes)),
             tf.zeros((inputs.shape[0], self.nodes))
@@ -93,12 +93,10 @@ class LSTM():
     def __call__(self, inputs, state):
         self.initial_state = state
         self.lstm.get_initial_state = self.get_initial_state
-
         return self.net(inputs)
 
 
 class GaussianMixture(tf.keras.Model):
-
     def __init__(
             self,
             num_features,
@@ -130,7 +128,6 @@ class GaussianMixture(tf.keras.Model):
         super().__init__(inputs=[input_layer], outputs=[pi, mu, sigma])
 
     def kernel_probs(self, mu, sigma, next_latent):
-
         constant = 1 / math.sqrt(2 * math.pi)
 
         #  mu.shape
@@ -151,7 +148,6 @@ class GaussianMixture(tf.keras.Model):
         return conditional_probabilities
 
     def get_loss(self, mixture, next_latent):
-
         pi, mu, sigma = self(mixture)
         probs = self.kernel_probs(mu, sigma, next_latent)
         loss = tf.multiply(probs, pi)

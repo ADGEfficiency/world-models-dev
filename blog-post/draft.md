@@ -42,6 +42,8 @@ Students (mack, samson, stas)
 
 The three components
 
+Compression, prediction, control
+
 Compression
 - why = decisions (business decisions)
 - image to z

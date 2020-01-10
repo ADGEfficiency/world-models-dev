@@ -3,7 +3,7 @@ title: 'Reimplementing World Models'
 date: 2019-12-21
 categories:
   - Python, Machine Learning, Reinforcement Learning
-excerpt: A TensorFlow 2.0 reimplementation of the 2018 paper by Ha & Schmidhuber.
+excerpt: A TensorFlow 2.0 reimplementation of Ha & Schmidhuber (2018).
 
 ---
 
@@ -43,84 +43,15 @@ Below the code for sampling environment observations is given in full ([see the 
 
 ```python
 # worldmodels/dataset/car_racing.py
-
-from gym.spaces.box import Box
-from gym.envs.box2d.car_racing import CarRacing
-import numpy as np
-from PIL import Image
-
-
-def process_frame(
-    frame,
-    screen_size=(64, 64),
-    vertical_cut=84,
-    max_val=255,
-    save_img=False
-):
-    """ crops, scales & convert to float """
-    frame = frame[:vertical_cut, :, :]
-    frame = Image.fromarray(frame, mode='RGB')
-
-    obs = frame.resize(screen_size, Image.BILINEAR)
-    return np.array(obs) / max_val
-
-
-class CarRacingWrapper(CarRacing):
-    screen_size = (64, 64)
-
-    def __init__(self, seed=None):
-        super().__init__()
-        if seed:
-            self.seed(int(seed))
-
-        #  new observation space to deal with resize
-        self.observation_space = Box(
-                low=0,
-                high=255,
-                shape=self.screen_size + (3,)
-        )
-
-    def step(self, action, save_img=False):
-        """ one step through the environment """
-        frame, reward, done, info = super().step(action)
-        self.viewer.window.dispatch_events()
-
-        obs = process_frame(
-            frame,
-            self.screen_size,
-            vertical_cut=84,
-            max_val=255.0,
-            save_img=save_img
-        )
-
-        return obs, reward, done, info
-
-    def reset(self):
-        """ resets and returns initial observation """
-        raw = super().reset()
-
-        #  needed to get image rendering
-        #  https://github.com/openai/gym/issues/976
-        self.viewer.window.dispatch_events()
-
-        return process_frame(
-            raw,
-            self.screen_size,
-            vertical_cut=84,
-            max_val=255.0,
-            save_img=False
-        )
 ```
 
-# The Three Components - Vision, Memory and Control
+# The Agent
 
-## All together now!
+F1
 
-First introduce all three together
+# Vision
 
-## Vision
-
-### Why do we need to see
+### Why do we need to see?
 
 Why vision is important?  The most common operation in modern computer vision is **dimensionality reduction**.  
 
@@ -156,7 +87,11 @@ The VAE is a **generative** model that learns the data generating process.  The 
 
 The VAE uses **likelihood maximization** to learn this joint distribution $P(x,z)$.  Likelihood maximization is the process of maximizing the similarity between two distributions.  In our case these distributions are the distribution over our training data (the data generating process) and our parametrized approximation (a convolutional neural network).
 
-We can decompose this joint distribution using the Multiplication Rule of probability:
+Let's start with the definition of a conditional probability:
+
+$$ P(x \mid z) = \frac{P(x, z)}{P(z)} $$
+
+Rearranging this definition gives us a decomposition of the joint distribution  (this is the Product rule):
 
 $$P(x, z) = P(x \mid z) \cdot P(z)$$
 
@@ -241,7 +176,7 @@ $$z \sim P(z \mid x)$$
 
 $$ z \mid x \approx \mathbf{N} (\mu_{\theta}, \sigma_{\theta}) $$
 
-$$z \sim P(\mathbf{N} (\mu_{\theta}, \sigma_{\theta}))$$
+$$z \sim E(\mathbf{N} (\mu_{\theta}, \sigma_{\theta}))$$
 
 We can sample from this latent space distribution, making the encoding of an image $x$ stochastic.
 
@@ -431,19 +366,99 @@ The contributions of the VAE are:
 - compression / regularization of the latent space using a KLD between our learnt latent space and a prior $P(z) = \mathbf{N} (0, 1)$
 - stochastic encoding of a sample $x$ into the latent space $z$ and into a reconstruction $x'$
 
+The reasons why we use the VAE in the World Models agent:
+- learn the latent representation $z$
+
 ```python
 # worldmodels/vision/vae.py
 
 # worldmodels/vision/train_vae.py
 ```
 
-## Memory
+# Memory
 
-$$ P(z' | a, z, h) $$
+Conditional, discriminative
 
-## Control
+$$ P(z' | z, a) $$
 
-# Practical implementation
+The primary role of the memory in the World Models agent is **prediction**.  The reason for this is that prediction is useful for control.
+
+This is one of the most important lessons for a data scientist - so important that it defines data science for me
+
+>> DEFN
+
+Compression of time (use lstm hidden state) - predict next step, but learn a longer representation of time via hidden state (specifically $h$)
+
+Fig
+
+##  Mixtures
+
+Arbitrary conditional probability distributions
+- Flex to model general distribution functions
+- no assumption of independent variables in the pred
+- use variance as measure of uncertainty
+
+A primary motivation behind using a mixture of distributions is that we can approximate **multi-modal** distributions.
+
+Probability distribution output by a mixture can (in principle!) be calculated.  The flexibility is similar to a feed forward neural network, and likely has the same distinction between being able approximate versus being able to learn.
 
 
+Bishop (?) shows that by training a neural network using a least squares loss function, we are able to learn two statistics.  One is the conditional mean, which is our prediction.  The second statistic is the variance, which we can approximate from the residual.
 
+We can use these two statistics to form a Gaussian.
+
+Our kernel of choice is the Gaussian, which has a probability density function:
+
+$$ \phi (z' \mid z, a) = \frac{1}{\sqrt(2 \pi) \sigma(z, a)} \exp \Bigg[ - \frac{\lVert z' - \mu(z, a) \rVert^{2}}{2 \sigma(z, a)^{2}} \Bigg] $$
+
+Prediction = linear combination of Gaussians
+- means
+- variance
+- mix probs (need a softmax, exponential (param = log sigma :), become $\pi$ via bayes)
+
+Exponential of the sigmas
+
+The parametrized mixture probabilities $\pi{\theta}$ are priors of the target having been generated by a mixture component.  These are transformed via a softmax:
+
+$$ \pi_{\theta} = \frac {\exp (z)}{\sum_{mixes} exp(z)} $$
+
+This then means our mixture satasfies the constraint:
+
+$$ \sum_{mixes} \pi(z, a) = 1 $$
+
+As with the VAE, the memory parameters are found using likelihood maximization.  One interpretation of likelihood maximization is reducing dissimilarity (Goodfellow)
+The parameters $\theta$ are found using likelihood maximization.  
+
+$$ M(z' \mid z, a) =  \sum_{mixes} \alpha(z, a) \cdot \phi (z'| z, a) $$
+
+$$ \mathbf{LOSS} = - \log M(z' \mid z, a)$$
+
+$$ \mathbf{LOSS} = - \log  \sum_{mixes} \alpha(z, a) \cdot \phi (z'| z, a) $$
+
+Sum or select (I select)
+
+How do we set these statistics? answer = lstm
+
+```python
+#worldmodels/memory/memory.py - GaussianMix
+```
+
+## LSTM
+
+Motivation behind using an LSTM
+- non-linear
+- models sequential structure
+
+Use NN -> non-linear
+
+$$ M_{\theta}(z'| z, a, h) $$
+
+cell state, h state
+
+```python
+#worldmodels/memory/memory.py - LSTM
+```
+
+## Putting the Memory together
+
+Testing with notebooks.
