@@ -2,10 +2,7 @@ import os
 
 import boto3
 
-
-#  not importing from params nice not to have the dependency for now
-home = os.environ['HOME']
-results_dir = os.path.join(home, 'world-models-experiments')
+from worldmodels.params import results_dir
 
 
 def make_directories(*dirs):
@@ -28,10 +25,8 @@ def list_records(
     """ interface to S3 or local files """
     if str(data).lower() == 's3':
         return list_s3_objects(contains)
-
     elif data == 'local':
         return list_local_files(path, contains)
-
     else:
         raise ValueError('data source {} not recognized'.format(data))
 

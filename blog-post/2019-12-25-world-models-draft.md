@@ -8,9 +8,101 @@ excerpt: A TensorFlow 2.0 reimplementation of Ha & Schmidhuber (2018).
 ---
 
 
-# The environment
+# Table of Contents
 
-## Working with `car-racing-v0`
+- Key Resources
+- Motivations
+  - why reimplement a paper?
+  - why reimplement World Models?
+- The Agent
+- The Environment
+  - `car-racing-v0` as a Markov Decision Process
+  - Working with `car-racing-v0`
+
+
+# Key Resources
+
+- reimplementation code base - [ADGEfficiency/world-models](https://github.com/ADGEfficiency/world-models)
+- [interactive blog post](https://worldmodels.github.io/)
+- [2018 paper](https://arxiv.org/pdf/1809.01999.pdf) - Recurrent World Models Facilitate Policy Evolution 
+- [2018 paper](https://arxiv.org/pdf/1803.10122.pdf) - World Models 
+- paper code base - [hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiment://github.com/hardmaru/WorldModelsExperiments)
+
+
+# Motivations
+
+My main side project in 2019 (April - Dec) was a reimplementation of the 2018 paper by Ha & Schmidhuber.  
+
+## Why reimplement a paper?
+
+Listed as a good idea by Open AI - specifically remember *high quality implementation* - which echoed in my mind throughout the project.
+
+## Why reimplement World Models?
+
+World Models is one of three machine learning papers that have blown me away.
+
+### DQN
+
+The first blew me away without me even reading it.  I have a memory of seeing a YouTube video DQN playing the Atari game Breakout.  Even though I knew nothing of reinforcement learning, the significance of a machine could learn to play a video game from pixels was made clear.
+
+<center>
+<iframe width="560" height="315" src="https://www.youtube.com/embed/V1eYniJ0Rnk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<figcaption>The raw observation (96, 96, 3) - the resized observation (64, 64, 3) - the learnt latent variables (32,)</figcaption>
+</center>
+
+I had no way of knowing that the algorithm I was watching would be one I implement in four distinct implementations, and teach the ins & outs of DQN and it's evolution into Rainbow.
+
+### AlphaGo Zero
+
+The second was AlphaGo Zero.  The publication of AlphaGo Zero in October 2017 came out after I had taught reinforcement learning twice.
+
+<center>
+	<img src="/assets/world-models/Zero_act_learn.png">
+	<figcaption>The raw observation (96, 96, 3) - the resized observation (64, 64, 3) - the learnt latent variables (32,)</figcaption>
+  <div></div>
+</center>
+
+Even at this stage, I didn't fully grasp all of the mechanics in AlphaGo.  But I knew enough to understand the significance of the changes - *tabula rasa* learning among the most important.
+
+### World Models
+
+The third is World Models.  Ha & Schmidhuber's 2018 paper was accompanied by a blog post that was both interactive and full of gifs. It remains one of my favourite pages on the Internet!
+
+Alongside this sits a body of technical work that includes Variational Autoencoders, Gaussian Mixtures, LSTM's and CMA-ES.
+
+Alongside this sits a body of technical work that uses state of the art generative models, mixed density networks powered by an LSTM and an evolutionary algorithm finding the parameters of a linear controller!
+
+I had never worked with any of these techniques before. The influence of me learning these techniques has been most visible in the projects of my students at Data Science Retreat.  Shout out to Mack (MDN) Samson (VAE) and Stas (World Models + PPO).
+
+The other impression of the World Models work is the tagline *learning within a dream*.  This was something very relevant to work I was doing as an energy data scientist.  We had no simulator, and struggled to learn an environment model from limited amounts of customer data.
+
+Being able to learn an environment model is a super power in any control problem.  Note that you can replace learn with approximate :)
+
+The World Models work is an example of strong technical work presented well.
+
+So what is in a World Models agent?
+
+# The Agent
+
+F1 (whiteboard)
+
+The agent has three components a **vision**, **memory** and **controller**.
+
+The key idea in World Models is **compression**.  Compression (also known as dimensionality reduction) is perhaps the fundamental operation in machine learning.
+
+Why is dimensionality reduction valuable?  **Decisions are easier in low dimensional spaces.  Prediction is also easier**!
+
+World Models uses compression in two components.  The vision component compresses a high dimensional observation of the environment $x$ to a low dimensional representation $z$.  This low dimensional representation is used as one of the two inputs to the controller.
+
+The memory component predicts the next latent state $z'$ from the current latent state $z$.  The agent never uses the predicted next latent state $z'$ (which represents only one step in the future) but instead the hidden state of the LSTM used to predict $z'$.
+
+It is curious that our agent never uses the final output of either the vision or the memory in the controller.  For both components the agent makes use of internal, compressed representations of either space or time.
+
+Keeping the dimensionality reduction compression away from the controller allows us to use a simple linear controller with an evolutionary algorithm.  A major benefit of an evolutionary method is the ability to parallelize rollouts, which makes up for learning from a weaker signal (total episode reward) than more sample efficient model free or model based reinforcement learning.
+
+# The Environment
+
+## `car-racing-v0` as a Markov Decision Process
 
 I used the same version of OpenAI gym as the paper (`gym==0.9.4`).
 
@@ -22,22 +114,26 @@ In the `car-racing-v0` environment, the agents **observation** is raw image pixe
   <div></div>
 </center>
 
+The **action** has three continuous dimensions - `[steering, gas, break]` (could give min / max).
+
+The **reward** function is
+- -0.1 for each frame
+- +1000 / N for each tile visited (N = total tiles on track)
+
+Of particular interest is a hyperparameter controlling the episode length (known more formally as the horizon).  This is set to 1,000 throughout the paper codebase.  Changing this can have interesting effects on agent performance. (Horizion)
+
+## Working with `car-racing-v0`
+
 Of particular importance is using the following in the `reset()` and `step()` methods ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
+
+TODO pic of the failed obs
 
 ```python
 #  do this before env.step(), env.reset()
 self.viewer.window.dispatch_events()
 ```
 
-The **action** has three continuous dimensions - `[steering, gas, break]` (could give min / max).
-
-The **reward** function is 
-- -0.1 for each frame
-- +1000 / N for each tile visited (N = total tiles on track)
-
-Evolution = only learn from total episode reward
-
-Of particular interest is a hyperparameter controlling the episode length (known more formally as the horizon).  This is set to 1,000 throughout the paper codebase.  Changing this can have interesting effects on agent performance.
+Instability when parallelizing over CMAES
 
 Below the code for sampling environment observations is given in full ([see the source here](https://github.com/ADGEfficiency/world-models-dev/blob/master/worldmodels/dataset/car_racing.py)):
 
@@ -45,19 +141,17 @@ Below the code for sampling environment observations is given in full ([see the 
 # worldmodels/dataset/car_racing.py
 ```
 
-# The Agent
-
-F1
-
 # Vision
 
-### Why do we need to see?
+## Why do we need to see?
 
-Why vision is important?  The most common operation in modern computer vision is **dimensionality reduction**.  
+Vision is **dimensionality reduction**.  It is the process of reducing the high dimensional image data into a lower dimensional space.
 
-Why is dimensionality reduction important?  **Decisions are easier in low dimensional spaces.  Prediction is also easier**!
+A canonical example in modern computer vision is image classification, where an image can be mapped throughout a convolutional neural network to a low dimensional space (cat or dog).
 
-Let's take our `car-racing-v0` environment .  A low dimensional representation of the environment observation might look something like:
+Another would be the flight or fight response.
+
+In our `car-racing-v0` environment, a low dimensional representation of the environment observation might include:
 
 ```python
 observation = [
@@ -67,11 +161,13 @@ observation = [
 ]
 ```
 
-Using these three numbers, we could imagine deriving a control policy.  Try to do this with 27,648 numbers arranged in a shape (96, 96, 3)!
+Using these three numbers, we could imagine deriving a simple control policy.  Try to do this with 27,648 numbers arranged in a shape (96, 96, 3)!
 
-We have a definition of vision as reducing dimensionality.  How does our agent see?
+We need to see in order to reduce high dimensional data
 
-### What the controller sees
+Vision is dimensionality reduction.  How does our agent see?
+
+## What the controller sees (move up?)
 
 The vision of the World Models agent reduces the environment observation $x$ (96, 96, 3) into a low dimensional representation $z$ (32,) known as the **latent space**.
 
@@ -83,46 +179,53 @@ How do we learn this latent representation if we don't have examples?  One techn
 
 A **Variational Autoencoder (VAE)** forms the vision of our agent.
 
-The VAE is a **generative** model that learns the data generating process.  The data generating process is $P(x,z)$ - the joint distribution over our data (the probability of $x$ and $z$ occurring together).  
+The VAE is a **generative** model that learns the data generating process.  The data generating process is $P(x,z)$ - the joint distribution over our data (the probability of $x$ and $z$ occurring together).
 
-The VAE uses **likelihood maximization** to learn this joint distribution $P(x,z)$.  Likelihood maximization is the process of maximizing the similarity between two distributions.  In our case these distributions are the distribution over our training data (the data generating process) and our parametrized approximation (a convolutional neural network).
+But what is a generative model?
 
-Let's start with the definition of a conditional probability:
+## Generative versus discriminative models
+
+All approaches in supervised learning are either generative or discriminative.
+
+### Generative models
+
+**Generative models** learn a **joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models generate new, unobserved data $x'$.
+
+We can derive this process for generating new data.  Let's start with the definition of conditional probability:
 
 $$ P(x \mid z) = \frac{P(x, z)}{P(z)} $$
 
-Rearranging this definition gives us a decomposition of the joint distribution  (this is the Product rule):
+Rearranging this definition gives us a decomposition of the joint distribution  (this is the product rule of probability):
 
 $$P(x, z) = P(x \mid z) \cdot P(z)$$
 
-This decomposition describes the entire generative process:
-- first sample a latent representation
+This decomposition describes the entire generative process.  First sample a latent representation:
 
 $$z \sim P(z)$$
 
-- then sample a generated data point $x'$, using the conditional probability $P(x \mid z)$
+Then sample a generated data point $x'$, using the conditional probability $P(x \mid z)$:
 
 $$x' \sim P(x \mid z)$$
 
-These sampling and decoding steps describe the generation of new data $x'$.  It doesn't describe the entire structure of the VAE (more on that later).
+These sampling and decoding steps only describes the generation of new data $x'$ from an unspecified generative model.  It doesn't describe the entire structure of a VAE.
 
-Where to generative models fit in the context of other supervised learning methods?
+### Discriminative models
 
-### Generative versus discriminative models
-
-All approaches in supervised learning can be categorized into either generative or discriminative models.
-
-We have seen that generative models learn a **joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models allow generation, as we can sample from the learnt joint distribution.
-
-Discriminative models learn a **conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models are used for prediction, using observed $z$ to predict $x$.  This is simpler than generative modelling.
+Unlike generative models, **discriminative models** learn a **conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models predict, using observed $z$ to predict $x$.  This is simpler than generative modelling.
 
 A common discriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a predicted class.
 
 Now we understand the context of generative models in supervised learning, we can look at the context of the VAE within generative models.
 
+
+Where to generative models fit in the context of other supervised learning methods?
+
+
 ### The VAE in context
 
-The VAE sits alongside the Generative Adversarial Network (GAN) as the state of the art in generative modelling.  GANs typically outperform VAEs on reconstruction quality, with the VAE providing better support over the data.  By support, we mean the number of different values a variable can take.
+The VAE sits alongside the Generative Adversarial Network (GAN) as the state of the art in generative modelling.  
+
+The figure below shows the outstanding progress in image quality generated by GANs.  GANs typically outperform VAEs on reconstruction quality, with the VAE providing better support over the data (support meaning the number of different values a variable can take).
 
 <center>
 	<img src="/assets/world-models/gan.png">
@@ -132,7 +235,7 @@ The VAE sits alongside the Generative Adversarial Network (GAN) as the state of 
   <div></div>
 </center>
 
-The VAE has less in common with classical (such as sparse or denoising) autoencoders, which both require the use of the computationally expensive Markov Chain Monte Carlo.
+The VAE has less in common with classical (sparse or denoising) autoencoders, which both require the use of the computationally expensive Markov Chain Monte Carlo.
 
 ### What makes the VAE a good choice for the World Models agent?
 
@@ -170,7 +273,7 @@ The statistics parameterized by the encoder are used to form a distribution over
 
 (is this enforcing a gaussian prior or posterior?)
 
-This parameterized Gaussian is an approximation.  Using it will limit how expressive our latent space is, 
+This parameterized Gaussian is an approximation.  Using it will limit how expressive our latent space is,
 
 $$z \sim P(z \mid x)$$
 
@@ -198,7 +301,7 @@ But we aren't finished with the VAE yet - in fact we have only just started.
 
 Now that we have the structure of the VAE mapped out, we can be specific about how we pass data through the model.
 
-### Compression 
+### Compression
 
 $x$ -> $z$
 
@@ -221,6 +324,8 @@ $z$ -> $x'$
 - decode the sampled latent space into a reconstructed image $x' \sim D_{\omega}(x' \mid z)$
 
 ## The backward pass
+
+The VAE uses **likelihood maximization** to learn this joint distribution $P(x,z)$.  Likelihood maximization is the process of maximizing the similarity between two distributions.  In our case these distributions are the distribution over our training data (the data generating process) and our parametrized approximation (a convolutional neural network).
 
 We do the backward pass to learn - maximizing the joint likelihood of an image $x$ and the latent space $z$.
 
@@ -322,7 +427,7 @@ $$ \mathbf{LOSS}(\theta, \omega) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D
 
 The intuition of the second term in the VAE loss function is compression or regularization.
 
-The second term in the VAE loss function is the $\mathbf{KLD}$ between the and the latent space prior $P(z)$.  
+The second term in the VAE loss function is the $\mathbf{KLD}$ between the and the latent space prior $P(z)$.
 
 We haven't yet specified what the prior over the latent space should be.  A convenient choice is a **Standard Normal** - a Gaussion with a mean of zero, variance of one.
 
@@ -427,7 +532,7 @@ This then means our mixture satasfies the constraint:
 $$ \sum_{mixes} \pi(z, a) = 1 $$
 
 As with the VAE, the memory parameters are found using likelihood maximization.  One interpretation of likelihood maximization is reducing dissimilarity (Goodfellow)
-The parameters $\theta$ are found using likelihood maximization.  
+The parameters $\theta$ are found using likelihood maximization.
 
 $$ M(z' \mid z, a) =  \sum_{mixes} \alpha(z, a) \cdot \phi (z'| z, a) $$
 
@@ -462,3 +567,19 @@ cell state, h state
 ## Putting the Memory together
 
 Testing with notebooks.
+
+
+# Control
+
+only learn total ep rew
+
+
+
+
+
+
+# Refereces
+
+(same as ToC)
+
+ref dqn, rainbow

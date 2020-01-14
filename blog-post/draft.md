@@ -1,10 +1,8 @@
 Berlin photos, post onto medium, mentorcruise
 tsne! - map to 2d space!
-show final code in all the sections
-
-code snippets everywhere!
 
 put key / important references everywhere
+images & examples for everything! (draw on the whiteboard?)
 
 pre knowledge - conditional, marginal distributions, kld, 
 
@@ -14,47 +12,13 @@ scope!
 
 enjoyed working with images
 
-images & examples for everything!
-
 ecosystem
 - original paper
-
-Dimensionality reduction is so often the primary function of machine learning that it is a useful working definition of the entire field.
 
 visalization of rollouts
 - random
 - halfway
 - final
-
-## Table of contents
-
-## Motivations
-
-Like the paper, love the blog post
-
-Learn inside a dream
-
-Open AI challenge
-
-Students (mack, samson, stas)
-
-##  The WM agent
-
-The three components
-
-Compression, prediction, control
-
-Compression
-- why = decisions (business decisions)
-- image to z
-- future to h
-
-### VAE
-
-- draft
-- images
-
-### MEM, CONTROL
 
 ## Timeline
 
@@ -157,3 +121,5 @@ Really need 16 generations per population?
 AWS
 
 VAE, MDN, evolution
+
+TF 2

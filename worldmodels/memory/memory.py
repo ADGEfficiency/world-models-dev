@@ -97,13 +97,7 @@ class LSTM():
 
 
 class GaussianMixture(tf.keras.Model):
-    def __init__(
-            self,
-            num_features,
-            num_mix,
-            num_timesteps,
-            batch_size,
-    ):
+    def __init__(self, num_features, num_mix, num_timesteps, batch_size):
         self.num_mix = num_mix
 
         #  (batch_size, num_timesteps, output_dim * num_mix * 3)
