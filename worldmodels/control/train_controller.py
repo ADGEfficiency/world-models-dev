@@ -39,7 +39,7 @@ def get_action(z, state, params):
     return action.astype(np.float32)
 
 
-def episode(params, seed, collect_data=False, episode_length=1000):
+def episode(params, seed, collect_data=False, episode_length=1000, render=False):
     #  needs to be imported here for multiprocessing
     import tensorflow as tf
     from worldmodels.vision.vae import VAE
@@ -64,6 +64,8 @@ def episode(params, seed, collect_data=False, episode_length=1000):
 
     obs = env.reset()
     for step in range(episode_length):
+        if render:
+            env.render("human")
         obs = obs.reshape(1, 64, 64, 3).astype(np.float32)
         mu, logvar = vision.encode(obs)
         z = vision.reparameterize(mu, logvar)

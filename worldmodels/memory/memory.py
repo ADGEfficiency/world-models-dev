@@ -13,8 +13,7 @@ def get_pi_idx(pis, threshold):
     if threshold is None:
         threshold = np.random.rand(1)
 
-    pdf = 0
-
+    pdf = 0.0
     #  one sample, one timestep
     for idx, prob in enumerate(pis):
         pdf += prob

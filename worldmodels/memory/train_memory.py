@@ -14,7 +14,7 @@ import tensorflow as tf
 
 from worldmodels.dataset.tf_records import shuffle_samples, parse_latent_stats
 from worldmodels.memory.memory import Memory
-from worldmodels.params import memory_params, results_dir
+from worldmodels.params import memory_params, home
 
 from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
 from worldmodels import setup_logging
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     make_directories('memory-training/models')
     records = list_records('latent-stats', 'episode', args.data)
 
-    results_dir = os.path.join(results_dir, 'memory-training')
+    results_dir = os.path.join(home, 'memory-training')
     epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
         epochs=memory_params['epochs'],
         batch_size=memory_params['batch_size'],

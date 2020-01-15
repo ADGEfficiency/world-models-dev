@@ -2,11 +2,11 @@ import os
 
 import boto3
 
-from worldmodels.params import results_dir
+from worldmodels.params import home
 
 
 def make_directories(*dirs):
-    [os.makedirs(os.path.join(results_dir, d), exist_ok=True) for d in dirs]
+    [os.makedirs(os.path.join(home, d), exist_ok=True) for d in dirs]
 
 
 def calc_batch_per_epoch(
@@ -44,7 +44,7 @@ def list_s3_objects(contains):
 
 def list_local_files(record_dir, incl):
     print('local files that contain {} in {}'.format(incl, record_dir))
-    record_dir = os.path.join(results_dir, record_dir)
+    record_dir = os.path.join(home, record_dir)
     files = os.listdir(record_dir)
     files = sorted([os.path.join(record_dir, f) for f in files if incl in f])
     print('found {} files'.format(len(files)))
