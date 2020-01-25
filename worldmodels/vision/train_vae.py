@@ -16,13 +16,10 @@ def train(model, records, epochs, batch_size, log_every, save_every):
     logger.info('epoch, batch, reconstruction-loss, kl-loss')
 
     dataset = shuffle_samples(parse_random_rollouts, records, batch_size)
-    ##for sample_observations, _ in dataset.take(1): pass
     sample_observations = next(dataset)[0]
 
     sample_observations = sample_observations.numpy()[:4]
     sample_latent = tf.random.normal(shape=(4, model.latent_dim))
-
-    dataset = iter(dataset)
 
     epochs, batch_size, batch_per_epoch = calc_batch_per_epoch(
         epochs=epochs,
@@ -32,7 +29,6 @@ def train(model, records, epochs, batch_size, log_every, save_every):
     )
 
     image_dir = os.path.join(results_dir, 'images')
-
     for epoch in range(epochs):
         generate_images(model, epoch, 0, sample_latent, image_dir)
 

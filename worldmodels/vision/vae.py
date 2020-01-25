@@ -130,11 +130,7 @@ class VAE(tf.keras.Model):
         return mean, logvar
 
     def reparameterize(self, means, logvars):
-        """
-        latent statistics to latent
-
-        Reparameterization trick is a way to rewrite the expectation so that the distribution with respect to which we take the gradient is independent of parameters
-        """
+        """ latent statistics to latent """
         epsilon = tf.random.normal(shape=means.shape)
         return means + epsilon * tf.exp(logvars * .5)
 
@@ -170,7 +166,11 @@ class VAE(tf.keras.Model):
         """ images to loss to new weights"""
         with tf.GradientTape() as tape:
             losses = self.loss(batch)
-            gradients = tape.gradient(sum(losses.values()), self.trainable_variables)
+            gradients = tape.gradient(
+                sum(losses.values()), self.trainable_variables
+            )
 
-        self.optimizer.apply_gradients(zip(gradients, self.trainable_variables))
+        self.optimizer.apply_gradients(
+            zip(gradients, self.trainable_variables)
+        )
         return losses
