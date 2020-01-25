@@ -179,20 +179,9 @@ if __name__ == '__main__':
             gen_dir = os.path.join(results_dir, 'generation_{}'.format(generation))
             os.makedirs(gen_dir, exist_ok=True)
 
-            np.save(
-                os.path.join(gen_dir, 'population-params.npy'),
-                population
-            )
-
-            np.save(
-                os.path.join(gen_dir, 'best-params.npy'),
-                best_params
-            )
-
-            np.save(
-                os.path.join(gen_dir, 'epoch-results.npy'),
-                epoch_results
-            )
+            np.save(os.path.join(gen_dir, 'population-params.npy'), population)
+            np.save(os.path.join(gen_dir, 'best-params.npy'), best_params)
+            np.save(os.path.join(gen_dir, 'epoch-results.npy'), epoch_results)
 
             with open(os.path.join(gen_dir, 'es.pkl'), 'wb') as save:
                 pickle.dump(es, save)

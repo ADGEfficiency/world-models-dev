@@ -6,6 +6,7 @@ from worldmodels.params import home
 
 
 def make_directories(*dirs):
+    """ make many directories at once """
     [os.makedirs(os.path.join(home, d), exist_ok=True) for d in dirs]
 
 
@@ -32,6 +33,7 @@ def list_records(
 
 
 def list_s3_objects(contains):
+    """ interface to S3 """
     print('S3 objects that include {}'.format(contains))
     s3 = boto3.resource('s3')
     name = 'world-models'
@@ -43,6 +45,7 @@ def list_s3_objects(contains):
 
 
 def list_local_files(record_dir, incl):
+    """ interface to local files """
     print('local files that contain {} in {}'.format(incl, record_dir))
     record_dir = os.path.join(home, record_dir)
     files = os.listdir(record_dir)

@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from worldmodels.dataset.car_racing import CarRacingWrapper
-from worldmodels.params import vae_params, results_dir
-from worldmodels.vision.vae import VAE
 
 
 def compare_images(model, sample_observations, image_dir):
@@ -37,29 +35,20 @@ def compare_images(model, sample_observations, image_dir):
     fig.savefig(os.path.join(image_dir, 'compare.png'))
 
 
-if __name__ == '__main__':
+def sample_observations():
+    """ random policy """
+    env = CarRacingWrapper()
+    obs = env.reset()
 
-    vae_params['load_model'] = True
-    model = VAE(**vae_params)
+    done = False
+    observations = []
+    while not done:
+        obs, reward, done, info = env.step(env.action_space.sample())
+        observations.append(obs)
 
-    def sample_observations():
-        env = CarRacingWrapper()
-        obs = env.reset()
-
-        done = False
-        observations = []
-        while not done:
-            obs, reward, done, info = env.step(env.action_space.sample())
-            observations.append(obs)
-
-        observations = np.array(observations)
-        np.save(os.path.join(results_dir, 'sample-obs.npy'), observations)
-        return observations
-
-    observations = np.load(os.path.join(results_dir, 'sample-obs.npy'))
-    sample = observations[np.random.randint(0, high=observations.shape[0], size=8)].astype(np.float32)
-
-    compare_images(model, sample, os.path.join(results_dir))
+    observations = np.array(observations)
+    np.save(os.path.join(results_dir, 'sample-obs.npy'), observations)
+    return observations
 
 
 def generate_images(model, epoch, batch, sample_latent, image_dir):

@@ -7,7 +7,7 @@ from worldmodels import setup_logging
 from worldmodels.dataset.tf_records import parse_random_rollouts, shuffle_samples
 from worldmodels.params import vae_params, results_dir
 from worldmodels.vision.vae import VAE
-from worldmodels.vision.compare_images import compare_images, generate_images, generate_gif
+from worldmodels.vision.images import compare_images, generate_images, generate_gif
 from worldmodels.utils import calc_batch_per_epoch, list_records, make_directories
 
 
