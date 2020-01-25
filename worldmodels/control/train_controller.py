@@ -6,11 +6,13 @@ import pickle
 import numpy as np
 import logging
 
+from worldmodels.control.controller import get_action
 from worldmodels.dataset.car_racing import CarRacingWrapper
 from worldmodels.params import vae_params, memory_params, env_params, home
 
 
 def make_logger(name):
+    """ sets up experiment logging to a file """
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     fldr = os.path.join(home, 'control')
@@ -23,23 +25,8 @@ def make_logger(name):
     return logger
 
 
-def shape_controller_params(params, output_size=3):
-    w = params[:-output_size].reshape(-1, output_size)
-    b = params[-output_size:]
-    return w, b
-
-
-def get_action(z, state, params):
-    w, b = shape_controller_params(params)
-    net_input = np.concatenate([z, state], axis=None)
-    action = np.tanh(net_input.dot(w) + b)
-
-    action[1] = (action[1] + 1.0) / 2.0
-    action[2] = np.clip(action[2], 0.0, 1.0)
-    return action.astype(np.float32)
-
-
 def episode(params, seed, collect_data=False, episode_length=1000, render=False):
+    """ runs a single episode """
     #  needs to be imported here for multiprocessing
     import tensorflow as tf
     from worldmodels.vision.vae import VAE
@@ -57,11 +44,8 @@ def episode(params, seed, collect_data=False, episode_length=1000, render=False)
 
     env = CarRacingWrapper(seed=seed)
     total_reward = 0
-
     data = defaultdict(list)
-
     np.random.seed(seed)
-
     obs = env.reset()
     for step in range(episode_length):
         if render:
@@ -80,7 +64,6 @@ def episode(params, seed, collect_data=False, episode_length=1000, render=False)
 
         y, h_state, c_state = memory(x, state, temperature=1.0)
         state = [h_state, c_state]
-
         total_reward += reward
 
         if done:
@@ -109,23 +92,21 @@ def episode(params, seed, collect_data=False, episode_length=1000, render=False)
 
 class CMAES:
     def __init__(self, x0, s0=0.5, opts={}):
-        """
-        x0 (OrderedDict) {'param_name': np.array}
-        """
+        """ wrapper around cma.CMAEvolutionStrategy """
         self.num_parameters = len(x0)
         print('{} params in controller'.format(self.num_parameters))
-
-        #  sigma init, weicht decay TODO
         self.solver = CMAEvolutionStrategy(x0, s0, opts)
 
     def __repr__(self):
         return '<pycma wrapper>'
 
     def ask(self):
+        """ sample parameters """
         samples = self.solver.ask()
         return np.array(samples).reshape(-1, self.num_parameters)
 
     def tell(self, samples, fitness):
+        """ update parameters with total episode reward """
         return self.solver.tell(samples, -1 * fitness)
 
     @property
@@ -142,9 +123,6 @@ if __name__ == '__main__':
     popsize = 64
     epochs = 16
 
-    # popsize = 2
-    # epochs = 2
-    # generations = 3
     results_dir = os.path.join(home, 'control', 'generations')
     os.makedirs(results_dir, exist_ok=True)
 

@@ -1,14 +1,20 @@
 ---
-title: 'Reimplementing World Models'
+title: 'World Models'
 date: 2019-12-21
 categories:
   - Python, Machine Learning, Reinforcement Learning
-excerpt: A TensorFlow 2.0 reimplementation of Ha & Schmidhuber (2018).
+excerpt: Ha & Schmidhuber's World Models (2018) reimplemented in TensorFlow 2.0 
 
 ---
 
+<center>
+	<img src="/assets/world-models/f0.gif">
+<figcaption>Performance of the final agent on a conveniently selected random seed. The cumulative episode reward is shown in the lower right.  This agent & seed achieves 893. 900 is solved.</figcaption>
+</center>
 
 # Table of Contents
+
+Tense = I, past
 
 - Key Resources
 - Motivations
@@ -19,27 +25,34 @@ excerpt: A TensorFlow 2.0 reimplementation of Ha & Schmidhuber (2018).
   - `car-racing-v0` as a Markov Decision Process
   - Working with `car-racing-v0`
 
-
 # Key Resources
 
 - reimplementation code base - [ADGEfficiency/world-models](https://github.com/ADGEfficiency/world-models)
-- [interactive blog post](https://worldmodels.github.io/)
+- original paper code base - [hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiments)
+- [interactive blog post](https://worldmodels.github.io/) - World Models
 - [2018 paper](https://arxiv.org/pdf/1809.01999.pdf) - Recurrent World Models Facilitate Policy Evolution 
 - [2018 paper](https://arxiv.org/pdf/1803.10122.pdf) - World Models 
-- paper code base - [hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiment://github.com/hardmaru/WorldModelsExperiments)
-
+- extensive collection of resources - [ADGEfficiency/rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models)
 
 # Motivations
 
-My main side project in 2019 (April - Dec) was a reimplementation of the 2018 paper by Ha & Schmidhuber.  
+My main side project in from April 2019 to ??? 2020 was a reimplementation of the 2018 paper by Ha & Schmidhuber.  This project dominated any spare time I had - usually one to three days per month.
+
+<center>
+	<img src="/assets/world-models/commits-month.png">
+	<figcaption>Commits per month.  Not all commits are made equal.</figcaption>
+  <div></div>
+</center>
 
 ## Why reimplement a paper?
 
-Listed as a good idea by Open AI - specifically remember *high quality implementation* - which echoed in my mind throughout the project.
+The original idea for reimplementing a paper came from reading an Open AI job advertisement.  Seeing a tangible goal that could put me in the ballpark, I set out looking for a paper to reimplement.
+
+I specifically remember reading *high quality implementation*.  This requirement was echoed in my mind as I developed this project.
 
 ## Why reimplement World Models?
 
-World Models is one of three machine learning papers that have blown me away.
+There are three papers that have blown me away in the three years I have been working with machine learning.  World Models was the third.
 
 ### DQN
 
@@ -66,19 +79,23 @@ Even at this stage, I didn't fully grasp all of the mechanics in AlphaGo.  But I
 
 ### World Models
 
-The third is World Models.  Ha & Schmidhuber's 2018 paper was accompanied by a blog post that was both interactive and full of gifs. It remains one of my favourite pages on the Internet!
+TODO A PICTURE!
 
-Alongside this sits a body of technical work that includes Variational Autoencoders, Gaussian Mixtures, LSTM's and CMA-ES.
+The third is World Models.  Ha & Schmidhuber's 2018 paper was accompanied by a blog post that was both interactive and full of moving images. 
 
-Alongside this sits a body of technical work that uses state of the art generative models, mixed density networks powered by an LSTM and an evolutionary algorithm finding the parameters of a linear controller!
+Alongside this outstanding presentation sits a body of work that is presentated in a number of blog posts.
 
-I had never worked with any of these techniques before. The influence of me learning these techniques has been most visible in the projects of my students at Data Science Retreat.  Shout out to Mack (MDN) Samson (VAE) and Stas (World Models + PPO).
+The technical work of World Models uses supervised and unsupervised learning providing representations to an evolutionary controller.
+
+I had never worked with any of the techniques used in World Models. The influence of me learning these techniques has been most visible in the projects of my students at Data Science Retreat.  Shout out to Mack (MDN) Samson (VAE) and Stas (World Models + PPO).
+
+## The promise of learning a model of the world
 
 The other impression of the World Models work is the tagline *learning within a dream*.  This was something very relevant to work I was doing as an energy data scientist.  We had no simulator, and struggled to learn an environment model from limited amounts of customer data.
 
 Being able to learn an environment model is a super power in any control problem.  Note that you can replace learn with approximate :)
 
-The World Models work is an example of strong technical work presented well.
+World Models is an example of strong technical work presented well.
 
 So what is in a World Models agent?
 
@@ -86,7 +103,7 @@ So what is in a World Models agent?
 
 F1 (whiteboard)
 
-The agent has three components a **vision**, **memory** and **controller**.
+The World Models agent has three components a **vision**, **memory** and **controller**.
 
 The key idea in World Models is **compression**.  Compression (also known as dimensionality reduction) is perhaps the fundamental operation in machine learning.
 
@@ -102,9 +119,27 @@ Keeping the dimensionality reduction compression away from the controller allows
 
 # The Environment
 
-## `car-racing-v0` as a Markov Decision Process
+The environment our agent will interact with 
 
 I used the same version of OpenAI gym as the paper (`gym==0.9.4`).
+
+## Markov Decision Process
+
+A Markov Decision Process (MDP) is a framework for decision making.  It can be defined as:
+
+$$ (\mathcal{S}, \mathcal{A}, \mathcal{R}, P, R, d_0, \gamma) $$
+
+- set of states $\mathcal{S}$
+- set of actions $\mathcal{A}$
+- set of rewards $\mathcal{R}$
+- state transition function $ P(s'|s,a) $
+- reward transition function $ R(r|s,a,s') $
+- distribution over initial states $d_0$
+- discount factor $\gamma$
+
+It is common to make the distinction between the state $s$ and observation $x$.  The state represents the true state of the environment, and has the Markov property.  The observation is what the agent sees.  The observation is less informative, and often not Markovian.
+
+## `car-racing-v0` as a Markov Decision Process
 
 In the `car-racing-v0` environment, the agents **observation** is raw image pixels (96, 96, 3) - this is cropped and resized to (64, 64, 3).
 
@@ -114,24 +149,31 @@ In the `car-racing-v0` environment, the agents **observation** is raw image pixe
   <div></div>
 </center>
 
-The **action** has three continuous dimensions - `[steering, gas, break]` (could give min / max).
+In DQN four environment observations are stacked to make the observation more Markov.  This isn't done in World Models - the observation is only of a single frame.
 
-The **reward** function is
-- -0.1 for each frame
-- +1000 / N for each tile visited (N = total tiles on track)
+The **action** has three continuous dimensions - `[steering, gas, break]` (could give min / max).  A continuous action space can make some reinforcement learning 
+
+The **reward** function is -0.1 for each frame, +1000 / N for each tile visited (N = total tiles on track).  This reward function encourages quick driving forward on the track.
 
 Of particular interest is a hyperparameter controlling the episode length (known more formally as the horizon).  This is set to 1,000 throughout the paper codebase.  Changing this can have interesting effects on agent performance. (Horizion)
 
 ## Working with `car-racing-v0`
 
-Of particular importance is using the following in the `reset()` and `step()` methods ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
+Of particular importance is using `env.viewer.window.dispatch_events()`  in the `reset()` and `step()` methods ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
 
-TODO pic of the failed obs
+<center>
+	<img src="/assets/world-models/corrupt.jpeg">
+	<figcaption>Corrupt</figcaption>
+  <div></div>
+</center>
 
 ```python
 #  do this before env.step(), env.reset()
 self.viewer.window.dispatch_events()
 ```
+
+Notebook about resizing-obserwation.ipynb (has hardcoded path to an observation
+
 
 Instability when parallelizing over CMAES
 
@@ -139,6 +181,7 @@ Below the code for sampling environment observations is given in full ([see the 
 
 ```python
 # worldmodels/dataset/car_racing.py
+# worldmodels/dataset/*
 ```
 
 # Vision
@@ -189,13 +232,13 @@ All approaches in supervised learning are either generative or discriminative.
 
 ### Generative models
 
-**Generative models** learn a **joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models generate new, unobserved data $x'$.
+**Generative models learn a joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models generate new, unobserved data $x'$.
 
-We can derive this process for generating new data.  Let's start with the definition of conditional probability:
+We can derive this process for generating new data, from the definition of conditional probability:
 
 $$ P(x \mid z) = \frac{P(x, z)}{P(z)} $$
 
-Rearranging this definition gives us a decomposition of the joint distribution  (this is the product rule of probability):
+Rearranging this definition gives us a decomposition of the joint distribution. This is the product rule of probability:
 
 $$P(x, z) = P(x \mid z) \cdot P(z)$$
 
@@ -207,11 +250,11 @@ Then sample a generated data point $x'$, using the conditional probability $P(x 
 
 $$x' \sim P(x \mid z)$$
 
-These sampling and decoding steps only describes the generation of new data $x'$ from an unspecified generative model.  It doesn't describe the entire structure of a VAE.
+These sampling and decoding steps only describe the generation of new data $x'$ from an unspecified generative model.  It doesn't describe the entire structure of a VAE.
 
 ### Discriminative models
 
-Unlike generative models, **discriminative models** learn a **conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models predict, using observed $z$ to predict $x$.  This is simpler than generative modelling.
+Unlike generative models, **discriminative models learn a conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models predict, using observed $z$ to predict $x$.  This is simpler than generative modelling.
 
 A common discriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a predicted class.
 
@@ -255,9 +298,11 @@ So how do we get meaningful encoding of an observation?  One technique is to con
 
 ## VAE structure
 
-The VAE is formed of three components - an encoder, a latent space and a decoder.
+The VAE is formed of three components - an encoder, a latent space and a decoder.  But before we discuss these, we need to introduce convolution.
 
 f2
+
+### Convolution
 
 ### Encoder
 
@@ -277,9 +322,7 @@ This parameterized Gaussian is an approximation.  Using it will limit how expres
 
 $$z \sim P(z \mid x)$$
 
-$$ z \mid x \approx \mathbf{N} (\mu_{\theta}, \sigma_{\theta}) $$
-
-$$z \sim E(\mathbf{N} (\mu_{\theta}, \sigma_{\theta}))$$
+$$ z \mid x \approx \mathbf{N} \Big(\mu_{\theta}, \sigma_{\theta}\Big) $$
 
 We can sample from this latent space distribution, making the encoding of an image $x$ stochastic.
 
@@ -314,14 +357,18 @@ $x$ -> $z$ -> $x'$
 
 - encode an image $x$ into a distribution over a low dimensional latent space
 - sample a latent space $z \sim E_{\theta}(z \mid x)$
-- decode the sampled latent space into a reconstructed image $x' \sim D_{\omega}(x' \mid z)$
+- decode the sampled latent space into a reconstructed image $x' \sim D_{\theta}(x' \mid z)$
 
 ### Generation
 
 $z$ -> $x'$
 
 - sample a latent space $z \sim P(z)$
-- decode the sampled latent space into a reconstructed image $x' \sim D_{\omega}(x' \mid z)$
+- decode the sampled latent space into a reconstructed image $x' \sim D_{\theta}(x' \mid z)$
+
+```python
+# worldmodels/vision/vae.py
+```
 
 ## The backward pass
 
@@ -378,13 +425,13 @@ Jensen's Inequality tells us that the $\mathbf{KLD}$ is always greater than or e
 
 Remember that we have a $\mathbf{KLD}$ we want to minimize!  We have just shown that we can do this by ELBO maximization.  After a bit more mathematical massaging (see the excellent [Altosaar - Tutorial - What is a variational autoencoder?](https://jaan.io/what-is-variational-autoencoder-vae-tutorial/)) we arrive at:
 
-$$ \mathbf{ELBO}(\theta, \omega) = \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega}(x' \mid z) \Big] - \mathbf{KLD} \Big (E_{\theta}(z \mid x) \mid \mid P(z) \Big) $$
+$$ \mathbf{ELBO}(\theta, \theta) = \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\theta}(x' \mid z) \Big] - \mathbf{KLD} \Big (E_{\theta}(z \mid x) \mid \mid P(z) \Big) $$
 
-Note the appearance of our decoder $D_{\omega}(x \mid z)$.  The decoder is used to approximate the true posterior $P(x' \mid z)$ - the conditional probability distribution over the reconstruction of latent variables into a generated $x'$ (given $x$).
+Note the appearance of our decoder $D_{\theta}(x \mid z)$.  The decoder is used to approximate the true posterior $P(x' \mid z)$ - the conditional probability distribution over the reconstruction of latent variables into a generated $x'$ (given $x$).
 
 The last step is to convert this $\mathbf{ELBO}$ maximization into a more familiar loss function minimization.  We now have the VAE loss function's final mathematical form - in all it's tractable glory:
 
-$$ \mathbf{LOSS}(\theta, \omega) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
+$$ \mathbf{LOSS}(\theta) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\theta} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
 
 The loss function has two terms - the log probability of the reconstruction (aka the decoder) and a $\mathbf{KLD}$ between the latent space (sampled from our encoder) and the latent space prior $P(z)$.
 
@@ -401,7 +448,7 @@ We will look at these two modifications in terms of the two terms in our loss fu
 
 ### First term - reconstruction loss
 
-$$ - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] $$
+$$ - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\theta} (x' \mid z) \Big] $$
 
 The first term in the VAE loss function is the log-likelihood of reconstruction - given latent variables $z$, the distribution over $x'$.  The latent variables are sampled from our encoder (hence the expectation $\mathbf{E}_{z \sim E_{\theta}}$).
 
@@ -423,7 +470,7 @@ High quality reconstructions mean that the VAE has learnt an efficient encoding 
 
 ### Second term - regularization
 
-$$ \mathbf{LOSS}(\theta, \omega) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\omega} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
+$$ \mathbf{LOSS}(\theta) = - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\theta} (x' \mid z) \Big] + \mathbf{KLD} \Big( E_{\theta} (z \mid x) \mid \mid P(z) \Big)  $$
 
 The intuition of the second term in the VAE loss function is compression or regularization.
 
@@ -482,26 +529,33 @@ The reasons why we use the VAE in the World Models agent:
 
 # Memory
 
-Conditional, discriminative
+## Why do we remember?
+
+For a human, memory has many roles.
+
+For our World Models agent, the agent remembers past transitions in order to predict future transitions.
+
+## The World Models memory
+
+The memory of the World Models agent is a discriminative model, that models the conditional probability:
 
 $$ P(z' | z, a) $$
 
-The primary role of the memory in the World Models agent is **prediction**.  The reason for this is that prediction is useful for control.
+The primary role of the memory in the World Models agent is compression of the future into a low dimensional representation $h$.
 
-This is one of the most important lessons for a data scientist - so important that it defines data science for me
+This low comression of time $h$ is the hidden state of an LSTM.
 
->> DEFN
+The LSTM to trained only to predict the next latent vector $z'$, but learns a longer representation of time via hidden state (specifically $h$)
 
-Compression of time (use lstm hidden state) - predict next step, but learn a longer representation of time via hidden state (specifically $h$)
+The memory's life is made easier by being able to predict in the low dimensional space learnt by the VAE.
 
-Fig
+The memory has two components - an LSTM and a Gaussian Mixture head.  Both these together form a mixed density network.
 
-##  Mixtures
+##  Gaussian Mixtures
 
-Arbitrary conditional probability distributions
-- Flex to model general distribution functions
-- no assumption of independent variables in the pred
-- use variance as measure of uncertainty
+A Gaussian mixture can model arbitrary conditional probability distributions.  It requires no assumption of individual variables in the prediction, even though we learn a diagonal covariance (do we???).
+
+In a more general setting, the variances learnt by a Gaussian mixture can be used as a measure of uncertainty.
 
 A primary motivation behind using a mixture of distributions is that we can approximate **multi-modal** distributions.
 
@@ -514,7 +568,7 @@ We can use these two statistics to form a Gaussian.
 
 Our kernel of choice is the Gaussian, which has a probability density function:
 
-$$ \phi (z' \mid z, a) = \frac{1}{\sqrt(2 \pi) \sigma(z, a)} \exp \Bigg[ - \frac{\lVert z' - \mu(z, a) \rVert^{2}}{2 \sigma(z, a)^{2}} \Bigg] $$
+$$ \phi (z' \mid z, a) = \frac{1}{\sqrt{(2 \pi) \sigma(z, a)}} \exp \Bigg[ - \frac{\lVert z' - \mu(z, a) \rVert^{2}}{2 \sigma(z, a)^{2}} \Bigg] $$
 
 Prediction = linear combination of Gaussians
 - means
@@ -550,33 +604,261 @@ How do we set these statistics? answer = lstm
 
 ## LSTM
 
-Motivation behind using an LSTM
-- non-linear
-- models sequential structure
+*For a deeper look at LSTM's, I cannot reccomend the blog post [Understanding LSTM Networks - colah's blog](https://colah.github.io/posts/2015-08-Understanding-LSTMs/) highly enough.*
 
-Use NN -> non-linear
+The motivation for using an LSTM to approximate the transition dynamics of the environment is that an LSTM is a **recurrent neural network**.  In the `car-racing-v0` environment the data is a sequence of latent representations $z$ of the observation
 
-$$ M_{\theta}(z'| z, a, h) $$
+Recurrent neural networks process data in a sequence:
 
-cell state, h state
+$$ P(x' | x, h) $$
+
+Where $h$ is the hidden state of the recurrent neural network.
+
+
+
+The LSTM was introduced in 1997 by Hochreiter & Schmidhuber.  A key contribution of the LSTM was overcoming the challenge of long term memory with only a single representation of the future.
+
+The LSTM is a recurrent neural network, that makes predictions based on the following:
+
+$$ P(x' | x, h, c) $$ 
+
+Where $h$ is the hidden state and $c$ is the cell state.  Using two variables for the LSTM's internal representation allows the LSTM to learn both a long and short term representation of the future.
+
+The long term representation is the **cell state** $c$.  The cell state is an information superhighway.
+
+The short term representation is the **hidden state** $h$.
+
+Sigmoid often used as an activation for binary classification.  For LSTMs, we use the sigmoid to control infomation flow.
+
+Tanh is used to generate data.  Neural networks like values in the range -1 to 1, which is exactly how a tanh generates data (with some non-linearity in between).
+
+Infomation is added or removed from both the cell and hidden states using gates.
+
+The gates are functions of the hidden state $h$ and the data $x$.
+
+GET, PUT, DELETE - Create, read, update, delete
+
+<center>
+	<img src="/assets/world-models/lstm.png">
+<figcaption> The LSTM - from [Understanding LSTM Networks](https://colah.github.io/posts/2015-08-Understanding-LSTMs/)</figcaption>
+</center>
+
+### Forget gate
+
+The first gate is the **forget gate**.  The forget gate works like the `DELETE` request in an REST API.
+
+The forget gate multiplies the cell state by a sigmoid.  A gate value of 0 would mean forget the entire cell state.  A gate value of 0 would mean remember the entire cell state.
+
+The sigmoid used to control the forget gate is a function of the hidden state $h$ and the data $x$.
+
+### Input gate
+
+The second gate is the **input gate**.  The input gate works like a `PUT` or `POST` request.
+
+This gate determines how we will update the cell state from $c$ to $c'$.  The infomation added to the cell state is formed from a sigmoid (that controls which values to update) and a tanh (that generates the new values).
+
+### Output gate
+
+The final gate determines what the LSTM outputs.  This gate works like a `GET` request.
+
+A sigmoid (based on the hidden state $h$) determines which parts of the cell state we will output.  This sigmoid is applied to the updated cell state $c'$, after the updated cell state $c'$ was passed through a tanh layer.
 
 ```python
-#worldmodels/memory/memory.py - LSTM
+#worldmodels/memory/memory.py
+
+#worldmodels/memory/train_memory.py
 ```
 
 ## Putting the Memory together
 
-Testing with notebooks.
+$$ M_{\theta}(z'| z, a, h, c) $$
 
+## Implementing the Memory in code
+
+From a software development perspective, development of the `Memory` class was done in two distinct approaches.
+
+### Performance based testing
+
+The first was testing the generalization of the MDN on a toy dataset.  The inspiration and dataset came directly from the excellent []().
+
+To isolate any bugs I first tested the Gaussian mixture head with a fully connected net.
+
+![]()
+
+The next test was with an LSTM generating the statistics of the mixture:
+
+![]()
+
+### Unit testing
+
+The performance based testing was combined with lower level unit testing:
+
+```python
+
+```
+
+### Training results
+
+
+```python
+# mem, train mem
+
+```
 
 # Control
 
-only learn total ep rew
+http://blog.otoro.net/2017/10/29/visual-evolution-strategies/
+
+https://arxiv.org/pdf/1604.00772.pdf
+
+$$ C_{\theta}(a' \mid z, h) $$
+
+## Why do we need control?
+
+The vision and memory components we have looked at so far are provide a compressed representation of the current and future environment observations.
+
+We need a controller to take these representations and select an action.
+
+The World Models agent uses a simple linear function for control.  The parameters of this function are learnt using the Covariance Matrix Adapation Evolution Stragety (CMA-ES).
+
+CMA-ES is an evolutionary algorithm.  We can place this learning algorithm in context using a concept from ?.
+
+## The four competences
+
+Talk about four competences
+
+only learn total ep rew, gradient free, fitness & objective fctn
+
+Less data efficient, less computation
+
+## Evolutionary algorithms
+
+> Randomized search algorithms are regarded to be robust in a rugged search landscape,which can comprise discontinuities, (sharp) ridges, or local optima. The covariance matrixadaptation (CMA) in particular is designed to tackle, additionally, ill-conditioned and nonseparable problems
+https://arxiv.org/pdf/1604.00772.pdf
+
+Evolutionary algorithms sit right at the bottom of our four competences.  This position is not derogatory - the learning process of evolution is responsible for everything around you.
+
+Computational evolutionary methods can be used for non-linear, non-convex, gradient free optimization.
+
+Rather that peeking into the temporal structure of a Markov Decision Process, the evolutionary method favours a more general **black box search**.
+
+Evolutionary methods are often stochastic
+
+Generate, test, select
+
+```python
+for generation
+	generate 
+	test
+	select
+```
+
+Genetic would include operations such as recombination by crossover or mutation in the generate step.
+
+Now that we understand the context of evolutionary methods, let's look at the method used by the controller - CMA-ES.
+
+## CMA-ES
+
+Update mean using n best
+
+Learn the full covariance of the parameter space
+
+Rank mu = uses info from entire population
+
+Rank one = info of correlation between generations.
+
+Step size control = TODO
+
+VAE = only diagonal, mix = diagonal.  Here we work with something much more significant.
+
+Overcomes typical problems with evolutionary methods:
+- poor performance on badly scaled / non-separable problems by combining rank one & rank mu update of C
+- prevent degeneration with small population sizes (rank 1 & mu)
+- premature convergence prevented by step size control
+
+Ha reccomends limiting to 10k parameters, as the covariance matrix calculation is $O(n^{2})$.
+
+### Generate
+
+Sample
+
+$$ x \sim \mu + \sigma \mathbf{N} \Big(0, C \Big) $$
+
+### Test
+
+Total episode reward
+
+### Select
+
+Selecting n best
+
+N best -> statistics
+
+$$ \mu_{g+1} = \frac{1}{N_best} \sum_{N_{best}} x_{g} $$
+
+Estimating a covariance matrix
+
+Important to remember which covariance matrix we want to estimate - a covariance matrix that will generate good parameters for our controller.
+
+Let's imagine we have a parameter space with two variables, $x$ and $y$.  We can estimate the statistics needed for a covariance matrix:
+
+$$ \mu_{x} = \frac{1}{N} \sum_{pop} x $$
+
+$$ \mu_{y} = \frac{1}{N} \sum_{pop} y $$
+
+$$ \sigma^{2}_{x} = \frac{1}{N} \sum_{pop} \Big( x - \mu_{x} \Big)^{2} $$
+
+$$ \sigma^{2}_{y} = \frac{1}{N} \sum_{pop} \Big( y - \mu_{y} \Big)^{2} $$
+
+$$ \sigma_{xy} = \frac{1}{N} \sum_{pop} \Big( x - \mu_{x} \Big) \Big( y - \mu_{y} \Big) $$
+
+$$\mathbf{COV} = \begin{bmatrix}  \sigma^{2}_{x} & \sigma_{xy} \\ \sigma_{yx} &  \sigma^{2}_{y}\end{bmatrix}$$
+
+These statistics will are an approximation of the true statistics used to generate (sample?) the data $x$ and $y$.
+
+In CMA-ES we select the $N_{best}$ parameters from generation $g$.
+
+We calculate the mean used to generate the next generation $g+1$ using the sample average across our $N_{best}$ parameters:
+
+But we do not use this mean $g+1$ when we form our covariance matrix, instead we use the sample mean from the current generation $g$:
+
+$$ $$
+
+Estimating the $COV$ from a single generation is unreliable.  A more reliable method uses adapation (rank mu)
+
+Rank mu = uses info from entire population
+
+Rank one = info of correlation between generations.
+
+Step size control = TODO
+
+```python
+for population in range(populations):
+	parameters = solver.ask()
+	fitness = environment.evalute(parameters)
+	solver.tell(parameters, fitness)
+```
+
+## Implementing the controller
+
+Careful where you import
 
 
+```python
+#worldmodels/control
+```
 
+# Timeline
 
+# Methods
 
+Step by step to reproduce
+
+Bash script to dl weights
+
+# Final results
+
+# Discussion
 
 # Refereces
 

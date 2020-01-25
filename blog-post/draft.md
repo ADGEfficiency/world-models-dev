@@ -1,6 +1,9 @@
 Berlin photos, post onto medium, mentorcruise
 tsne! - map to 2d space!
 
+what did i learn
+- minimization of lower bound
+
 put key / important references everywhere
 images & examples for everything! (draw on the whiteboard?)
 

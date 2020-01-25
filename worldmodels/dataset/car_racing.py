@@ -14,7 +14,6 @@ def process_frame(
     """ crops, scales & convert to float """
     frame = frame[:vertical_cut, :, :]
     frame = Image.fromarray(frame, mode='RGB')
-
     obs = frame.resize(screen_size, Image.BILINEAR)
     return np.array(obs) / max_val
 

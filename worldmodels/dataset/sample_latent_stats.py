@@ -1,24 +1,12 @@
-"""
-equivilant of series.py in original paper code
-
-loads dataset (entire episode)
-
-loads VAE
-
-get mu and theta (from sampled obs)
-
-this allows us to sample a different latent vector each time
-"""
-
 import argparse
 from os.path import join
 
 import tensorflow as tf
 
-from worldmodels.params import vae_params, results_dir
 from worldmodels.dataset.tf_records import encode_floats, batch_episodes, parse_random_rollouts
-from worldmodels.vision.vae import VAE
+from worldmodels.params import vae_params, results_dir
 from worldmodels.utils import list_records, make_directories
+from worldmodels.vision.vae import VAE
 
 
 if __name__ == '__main__':
@@ -40,7 +28,6 @@ if __name__ == '__main__':
     dataset = batch_episodes(parse_random_rollouts, records, episode_length=1000)
 
     model = VAE(**vae_params)
-
     for episode in range(episode_start, episode_start + episodes):
         print('processing episode {}'.format(episode))
         obs, act = next(dataset)
