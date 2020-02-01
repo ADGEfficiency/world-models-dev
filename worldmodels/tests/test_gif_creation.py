@@ -1,4 +1,4 @@
-from worldmodels.vision.compare_images import sort_image_files
+from worldmodels.vision.images import sort_image_files
 
 
 def test_get_image_files():

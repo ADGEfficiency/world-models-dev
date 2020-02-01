@@ -4,9 +4,6 @@ import re
 
 import imageio
 import matplotlib.pyplot as plt
-import numpy as np
-
-from worldmodels.dataset.car_racing import CarRacingWrapper
 
 
 def compare_images(model, sample_observations, image_dir):
@@ -33,22 +30,6 @@ def compare_images(model, sample_observations, image_dir):
 
     plt.tight_layout()
     fig.savefig(os.path.join(image_dir, 'compare.png'))
-
-
-def sample_observations():
-    """ random policy """
-    env = CarRacingWrapper()
-    obs = env.reset()
-
-    done = False
-    observations = []
-    while not done:
-        obs, reward, done, info = env.step(env.action_space.sample())
-        observations.append(obs)
-
-    observations = np.array(observations)
-    np.save(os.path.join(results_dir, 'sample-obs.npy'), observations)
-    return observations
 
 
 def generate_images(model, epoch, batch, sample_latent, image_dir):

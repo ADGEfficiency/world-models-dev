@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 import pytest
 
-from worldmodels.dataset.tf_records import encode_floats
-from worldmodels.dataset.tf_records import batch_episodes, shuffle_samples
+from worldmodels.data.tf_records import encode_floats
+from worldmodels.data.tf_records import batch_episodes, shuffle_samples
 
 
 home = os.environ['HOME']
