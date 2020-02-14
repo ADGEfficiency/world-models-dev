@@ -9,6 +9,7 @@ excerpt: Ha & Schmidhuber's World Models (2018) reimplemented in Tensorflow 2.0.
 
 todo
 - summary section for v, m, c
+- medium version (lessons learnt / summary post, no code)
 
 use I!!!
 
@@ -30,7 +31,7 @@ Important resources are below:
 - original paper code base - [hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiments) - [advice on running the code base](http://blog.otoro.net/2018/06/09/world-models-experiments/) 
 - [interactive blog post](https://worldmodels.github.io/) - [2018 paper](https://arxiv.org/pdf/1803.10122.pdf) - World Models
 
-# Motivations
+# Motivations and Context
 
 My main side project in 2019 was a reimplementation of 2018's World Models by Ha & Schmidhuber.
 
@@ -64,7 +65,7 @@ Total project AWS costs are below. I spent a total of $3,647 on the project (see
 
 The original idea for reimplementing a paper came from reading an Open AI job advertisement.  Seeing a tangible goal that could put me in the ballpark of a world class machine learning lab, I set out looking for a paper to reimplement.  
 
-I specifically remember reading *high quality implementation*.  This echoed in my mind as I developed the project.
+I specifically remember reading **high quality implementation**.  This echoed in my mind as I developed the project.
 
 ## Why reimplement World Models?
 
@@ -104,16 +105,21 @@ The third paper is World Models. World Models is an example of strong technical 
 
 Ha & Schmidhuber's 2018 paper was accompanied by a blog post that was both interactive and full of moving images. Alongside this outstanding presentation is technical work where supervised and unsupervised learning providing representations to an evolutionary controller.
 
-I had never worked with any of these techniques before reimplementing World Models. The influence of me learning these techniques has been visible in the projects of my students at Data Science Retreat.  Shout out to Mack (MDN), Samson (VAE) and Stas (World Models + PPO).  Thank you to them for allowing me to improve my understanding in parallel with theirs.
-
+I had never worked with any of these techniques before reimplementing World Models. The influence of me learning these techniques has been visible in the projects of my students at [Data Science Retreat](https://www.datascienceretreat.com/).  Shout out to Mack (MDN), Samson (VAE) and Stas (World Models + PPO).  Thank you to them for allowing me to improve my understanding in parallel with theirs.
 
 ## The promise of learning a model of the world
 
-The other impression of the World Models work is the tagline *learning within a dream*.  This was relevant to work I was doing as an energy data scientist at Tempus Energy.  We had no simulator, and struggled to learn an environment model from limited amounts of customer data.
+We operate in a world with spatial and temporal dimensions.  A **world model** is an abstract representation of these dimensions.  In a control problem, a world model can be useful in a number of different ways.
 
-Being able to learn an environment model is a super power in any control problem.  We operate in a world with spatial and temporal dimensions.  A *world model* is an abstract representation of these dimensions.  Commonly this representation is low dimensional.
+One use of a world model is to **use their low dimensional, internal representations for control**.  We will see that the World Models agent uses it's vision and memory in this way.  The value of having these low dimensional representations is that both prediction and control are easier in low dimensional spaces.
 
-Learning a low dimensional representation is **dimensionality reduction** - a fundamental operation in machine learning.  The value of dimensionality reduction is that both prediction and control are easier in low dimensional spaces.
+Another use of a world model is to **generate data for training**.  A model that is able to predict the environment observation and reward transition dynamics can be used recurrently to generate rollouts.
+
+**These two uses can be combined together**, where world models are used to generate rollouts in the low dimensional, internal representation spaces.  This is *learning within a dream*.
+
+The value of these different approaches is clear to anyone who (like I have), has spent time building or learning environment models. The sample inefficiency of modern reinforcement learning agents means that an environment models is required for simulation.
+
+I encountered this problem in industry, as an energy data scientist at Tempus Energy.  We had no simulator, and struggled to learn an environment model from limited amounts of customer data.
 
 ## The four competences
 
@@ -121,11 +127,13 @@ Learning a low dimensional representation is **dimensionality reduction** - a fu
 	<img src="/assets/world-models/bach-bacteria.jpg">
 </center>
 
+<p></p>
+
 I read Daniel C. Dennet's *From Bacteria to Bach and Back* in 2018.  In the book Dennet introduces **four grades of competence** (competence being the ability to act well).
 
 Each of these four grades is a successive application of generate, test & select (more on that in Evolution).  I have found them invaluable for organizing computational control algorithms.
 
-The first grade is **Darwinian**.  The Darwinian agent has pre-designed and fixed competences.  It doesn't improve within it's lifetime, with global improvement occuring via local selection.  Examples include cells and computational evolutionary algorithms.
+The first grade is **Darwinian**.  This agent has pre-designed and fixed competences.  It doesn't improve within it's lifetime, with global improvement occuring via local selection.  Examples include cells and computational evolutionary algorithms.
 
 The second grade is **Skinnerian**.  This agent has the ability to improve it's behaviour by learning to respond to reinforcement.  Examples include animals and model-free reinforcement learning.
 
@@ -133,13 +141,11 @@ The third grade is **Popperian**.  This agent learns models of the environment, 
 
 The final grade is **Gregorian**.  This agent builds thinking tools, such as arithmetic, democracy & computers.  Local improvement is possible via higher order control of mental searches, which are systematic explorations.  The only biological example we have is humans - I do not know of a computational method that builds it's own thinking tools.
 
-# The Environment
-
-Our agent interacts with the `car-racing-v0` environment from OpenAI's `gym` library.  I used the same version of `gym` as the paper codebase (`gym==0.9.4`).
+The optimization algorithm used to find good parameters of the controller (CMA-ES) is a Darwinian learner.  The full World Models agent is Popperian.
 
 ## Markov Decision Process
 
-We can describe the `car-racing-v0` environment as a Markov Decision Process.  A Markov Decision Process (MDP) is a mathematical framework for decision making.  Commonly the goal of an agent in an MDP is to maximize the expectation of future rewards.  It can be defined as:
+A Markov Decision Process (MDP) is a mathematical framework for decision making.  Commonly the goal of an agent in an MDP is to maximize the expectation of future rewards.  It can be defined as:
 
 $$ (\mathcal{S}, \mathcal{A}, \mathcal{R}, P, R, d_0, \gamma, H) $$
 
@@ -152,17 +158,28 @@ $$ (\mathcal{S}, \mathcal{A}, \mathcal{R}, P, R, d_0, \gamma, H) $$
 - discount factor $\gamma$
 - horizion $H$
 
-It is common to make the distinction between the state $s$ and observation $x$.  The state represents the true state of the environment, and has the Markov property.  The observation is what the agent sees.  The observation is less informative, and often not Markovian.
+It is common to make the distinction between the state $s$ and observation $x$.  The state represents the true state of the environment and has the Markov property.  
+
+The observation is what the agent sees.  The observation is less informative, and often not Markovian.
 
 Because the World Models agent uses the total episode reward as a learning signal, there is no role for a discount rate $\gamma$.
 
-The data collected by an agent interacting with an environment is a sequence of transitions, with a transition
+The data collected by an agent interacting with an environment is a sequence of transitions, with a transition being a tuple of observation, action, reward and next state:
 
-$$ \text{transition} = (s, a, r, s') $$
+$$ \text{transition} = (x, a, r, x') $$
+
+Both the vision and memory components learn only from the first two elements (observation and action).
+
+
+# The Environment
+
+Our agent interacts with the `car-racing-v0` environment from OpenAI's `gym` library.  I used the same version of `gym` as the paper codebase (`gym==0.9.4`).
 
 ## `car-racing-v0` as a Markov Decision Process
 
-In the `car-racing-v0` environment, the agents **observation** is raw image pixels $(96, 96, 3)$ - this is cropped and resized to $(64, 64, 3)$.
+We can describe the `car-racing-v0` environment as a Markov Decision Process.  
+
+In the `car-racing-v0` environment, the agents **observation space** is raw image pixels $(96, 96, 3)$ - this is cropped and resized to $(64, 64, 3)$.
 
 The observation has both a spatial $(96, 96, 3)$ and temporal structure, given the sequential nature of sampling transitions from the environment.
 
@@ -174,7 +191,7 @@ The observation has both a spatial $(96, 96, 3)$ and temporal structure, given t
 
 In DQN four environment observations are stacked to make the observation more Markovian.  This isn't done in World Models - the observation is a single frame.
 
-The **action** has three continuous dimensions - `[steering, gas, break]`.  This is a continuous action space - the most challenging for control.
+The **action space** has three continuous dimensions - `[steering, gas, break]`.  This is a continuous action space - the most challenging for control.
 
 The **reward** function is $-0.1$ for each frame, $+1000 / N$ for each tile visited, where $N$ is the total tiles on track.  This reward function encourages quickly driving forward on the track.
 
@@ -186,7 +203,7 @@ Of particular importance is using `env.viewer.window.dispatch_events()` in the `
 
 <center>
 	<img src="/assets/world-models/corrupt.jpeg">
-	<figcaption>Corrupt</figcaption>
+	<figcaption>If you see this, your environment observation is corrupt!</figcaption>
   <div></div>
 </center>
 
@@ -221,6 +238,8 @@ The second component is **memory**.  The memory component predicts the next late
 The third component is the **controller**.  The controller is a linear function that takes the vision latent state $z$ and the hidden state $h$ and maps to an action.  The controller parameters are found using an evolutionary algorithm.
 
 It is curious that our agent never uses the final output of either the vision or the memory in the controller.  For both components the agent make use of **internal representations** (of space or time respectively) to make decisions with.
+
+Note also that the vision and memory are **unsupervised**.
 
 # Vision
 
@@ -350,17 +369,14 @@ The VAE is formed of three components - an encoder, a latent space and a decoder
 
 volume to volume operation, layer = set of filters, pooling = reduces size at cost of infomation
 
-At the heart of convolution is the filter (sometimes called a kernel).  For RGB images these kernels are three dimensional (the third dimension being the number of channels).
+At the heart of convolution is the filter (sometimes called a kernel).  These are usually defined as two dimensional, with the third dimension being set to match the number of channels in the image (3 for RGB).
 
-Different kernels are learnt at different layers - shallower layers learn basic features such as edges, with later layers having filters
+Different kernels are learnt at different layers - shallower layers learn basic features such as edges, with later layers having filters that detect complex compositions of simpler features.
 
-These kernels operate on a part of the image:
-
-[matix] * kernel -> single number
-
-image * kernel -> 2D surface
-
-image + n kernels -> 3D (length of third = filters)
+We can think about these kernels operating on tensors of increasing size:
+- matrix (3, 3) * kernel (3, 3) -> scalar (1, )
+- image (6, 6, 1) * kernel (3, 3, 1) -> image (6, 6, 1)
+- image (6, 6, 1) * n kernels (n, 3, 3, 1) -> tensor (6, 6, 1, n)
 
 Important hyperparameters in convolutional neural networks:
 - size of filters (typically 3x3)
@@ -368,9 +384,7 @@ Important hyperparameters in convolutional neural networks:
 - padding
 - strides
 
-Reuse kernels, pass over entire image
-
-Convolution is translation invariant, meaning the features can be detected in different parts of the images.  This is ideal in image classification
+Due to reusing kernels, the convolutional neural network is translation invariant, meaning the features can be detected in different parts of the images.  This is ideal in image classification.  Max-pooling (commonly used to downsample the size of the internal representation) also produces translation invariance.
 
 ### Encoder
 
