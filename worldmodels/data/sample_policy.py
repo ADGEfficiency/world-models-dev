@@ -47,36 +47,47 @@ def get_max_gen():
     return max_gen
 
 
-def get_controller_params(generation):
+def get_controller_generation(generation):
     """ loads controller params """
-    max_gen = get_max_gen()
-    gen_best = []
+    if generation == 'max':
+        max_gen = get_max_gen()
+        return int(max_gen)
 
-    path = os.path.join(home, 'control', 'generations')
-    gens = list(range(max_gen - 5, max_gen))
-    for gen in gens:
-        rew = np.load(
-            os.path.join(path, 'generation_{}'.format(gen), 'epoch-results.npy')
-        )
-        gen_best.append(max(rew))
+    elif generation == 'best':
+        max_gen = get_max_gen()
+        path = os.path.join(home, 'control', 'generations')
+        gens = list(range(max_gen - 5, max_gen))
+        gen_best = []
+        for gen in gens:
+            rew = np.load(
+                os.path.join(path, 'generation_{}'.format(gen), 'epoch-results.npy')
+            )
+            gen_best.append(max(rew))
 
-    best_gen = gens[np.argmax(gen_best)]
-    print('max gen {} best gen {} {}'.format(max_gen, best_gen, max(rew)))
+        best_gen = gens[np.argmax(gen_best)]
+        print('max gen {} best gen {} {}'.format(max_gen, best_gen, max(rew)))
 
-    sleep(3)
+        sleep(3)
+        return int(best_gen)
 
+    else:
+        return int(generation)
+
+
+def get_controller_params(generation):
     path = os.path.join(
-        path,
-        'generation_{}'.format(best_gen),
+        home, 'control', 'generations',
+        'generation_{}'.format(generation),
         'best-params.npy'
     )
     print('loading controller from {}'.format(path))
     return np.load(path)
 
 
-def controller_rollout(controller_generation, seed=42, episode_length=1000):
+def controller_rollout(controller_gen, seed=42, episode_length=1000):
     """ runs an episode with pre-trained controller parameters """
-    params = get_controller_params(controller_generation)
+    controller_gen = get_controller_generation(controller_gen)
+    params = get_controller_params(controller_gen)
     results = episode(
         params,
         collect_data=True,
@@ -114,8 +125,8 @@ def rollouts(
     env,
     episode_length,
     results_dir,
-    policy='random-rollouts',
-    controller_generation=0,
+    policy='random',
+    generation=0,
     dtype='tf-records'
 ):
     """ runs many episodes """
@@ -130,7 +141,7 @@ def rollouts(
     for seed, episode in zip(seeds, episodes):
         if policy == 'controller':
             results = controller_rollout(
-                controller_generation,
+                generation,
                 seed=seed,
                 episode_length=episode_length
             )
@@ -160,7 +171,7 @@ if __name__ == '__main__':
     parser.add_argument('--episode_length', default=1000, nargs='?', type=int)
     parser.add_argument('--start_episode', default=0, nargs='?', type=int)
     parser.add_argument('--policy', default='random', nargs='?')
-    parser.add_argument('--controller-generation', default=0, nargs='?', type=int)
+    parser.add_argument('--generation', default=0, nargs='?')
     parser.add_argument('--dtype', default='tf-records', nargs='?')
     args = parser.parse_args()
     print(args)
@@ -191,7 +202,7 @@ if __name__ == '__main__':
                 episode_length=episode_length,
                 results_dir=results_dir,
                 policy=args.policy,
-                controller_generation=args.controller_generation,
+                generation=args.generation,
                 dtype=args.dtype
             ),
             range(num_process)

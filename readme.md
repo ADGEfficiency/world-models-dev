@@ -120,3 +120,8 @@ xvfb-run -a -s "-screen 0 1400x900x24 +extension RANDR" -- python3 worldmodels/d
 
 aws s3 sync s3://world-models/control s3://world-models/results/four/control
 ```
+
+To test the performance of a controller.  Saves data into `world-models-experiments/controller-samples` as `.npy` files.
+```bash
+python worldmodels/data/sample_policy.py --policy controller --dtype numpy --episode_length 1000 --num_process 3 --episodes 100
+```
