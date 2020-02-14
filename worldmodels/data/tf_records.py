@@ -1,3 +1,5 @@
+import os
+
 import tensorflow as tf
 
 
@@ -16,7 +18,22 @@ def encode_floats(features):
     return example_proto.SerializeToString()
 
 
-def parse_random_rollouts(example_proto):
+def save_episode_tf_record(results_dir, results, process_id, episode):
+    """ results dictionary to .tfrecord """
+
+    path = os.path.join(
+        results_dir,
+        'process{}-episode{}.tfrecord'.format(process_id, episode)
+    )
+
+    print('saving to {}'.format(path))
+    with tf.io.TFRecordWriter(path) as writer:
+        for obs, act in zip(results['observation'], results['action']):
+            encoded = encode_floats({'observation': obs, 'action': act})
+            writer.write(encoded)
+
+
+def parse_episode(example_proto):
     """ used in training VAE """
     features = {
         'observation': tf.io.FixedLenFeature((64, 64, 3), tf.float32),

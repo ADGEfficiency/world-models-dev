@@ -6,11 +6,10 @@ import os
 from time import sleep
 
 import numpy as np
-import tensorflow as tf
 
 from worldmodels.control.train_controller import episode
-from worldmodels.dataset.car_racing import CarRacingWrapper
-from worldmodels.dataset.tf_records import encode_floats
+from worldmodels.data.car_racing import CarRacingWrapper
+from worldmodels.data.tf_records import save_episode_tf_record
 from worldmodels.params import home
 
 
@@ -90,25 +89,10 @@ def controller_rollout(controller_generation, seed=42, episode_length=1000):
 def save_episode(results, process_id, episode, seed, dtype='tf-record'):
     """ saves data from a single episode to either record or np """
     if dtype == 'tf-record':
-        save_episode_tf_record(results, process_id, episode)
+        save_episode_tf_record(results_dir, results, process_id, episode)
     else:
         assert dtype == 'numpy'
         save_episode_numpy(results, seed)
-
-
-def save_episode_tf_record(results, process_id, episode):
-    """ results dictionary to .tfrecord """
-
-    path = os.path.join(
-        results_dir,
-        'process{}-episode{}.tfrecord'.format(process_id, episode)
-    )
-
-    print('saving to {}'.format(path))
-    with tf.io.TFRecordWriter(path) as writer:
-        for obs, act in zip(results['observation'], results['action']):
-            encoded = encode_floats({'observation': obs, 'action': act})
-            writer.write(encoded)
 
 
 def save_episode_numpy(results, seed):
@@ -155,8 +139,8 @@ def rollouts(
             assert policy == 'random'
             results = random_rollout(
                 env,
-                seed=seed
-                episode_length=episode_length,
+                seed=seed,
+                episode_length=episode_length
             )
 
         print('process {} episode {} length {}'.format(

@@ -7,7 +7,7 @@ import numpy as np
 import logging
 
 from worldmodels.control.controller import get_action
-from worldmodels.dataset.car_racing import CarRacingWrapper
+from worldmodels.data.car_racing import CarRacingWrapper
 from worldmodels.params import vae_params, memory_params, env_params, home
 
 

@@ -67,15 +67,15 @@ def test_shuffle_samples(make_records):
     assert np.mean(history) != history[-1]
 
 
-# def test_batch_tf_records(make_records):
-#     """ run through single episodes in order """
-#     records, episode_len, episodes = make_records
-#     dataset = batch_episodes(parse_func, records, episode_len)
+def test_batch_tf_records(make_records):
+    """ run through single episodes in order """
+    records, episode_len, episodes = make_records
+    dataset = batch_episodes(parse_func, records, episode_len)
 
-#     for ep in episodes:
-#         batch = next(dataset).numpy()
-#         np.testing.assert_array_equal(batch[0], ep)
+    for ep in episodes:
+        batch = next(dataset).numpy()
+        np.testing.assert_array_equal(batch[0], ep[0])
 
-#     for ep in episodes:
-#         batch = next(dataset).numpy()
-#         np.testing.assert_array_equal(batch[0], ep)
+    for ep in episodes:
+        batch = next(dataset).numpy()
+        np.testing.assert_array_equal(batch[0], ep[0])
