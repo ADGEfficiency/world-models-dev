@@ -4,7 +4,7 @@ import os
 import tensorflow as tf
 
 from worldmodels import setup_logging
-from worldmodels.dataset.tf_records import parse_episode, shuffle_samples
+from worldmodels.data.tf_records import parse_episode, shuffle_samples
 from worldmodels.params import vae_params, results_dir
 from worldmodels.vision.vae import VAE
 from worldmodels.vision.images import compare_images, generate_images, generate_gif

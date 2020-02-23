@@ -40,7 +40,7 @@ class MLP(tf.keras.Model):
             ]
         )
 
-    def call(self, input_tensor):
+    def __call__(self, input_tensor):
         return self.perceptron(input_tensor)
 
 

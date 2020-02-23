@@ -75,8 +75,8 @@ def validate_dataset(filenames, reader_opts=None):
 
 
 if __name__ == '__main__':
-    from worldmodels.dataset.upload_to_s3 import list_local_records
-    from worldmodels.dataset.tf_records import parse_random_rollouts
+    from worldmodels.data.upload_to_s3 import list_local_records
+    from worldmodels.data.tf_records import parse_random_rollouts
 
     records = list_local_records('random-rollouts', 'episode')
 

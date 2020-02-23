@@ -11,9 +11,7 @@ class VAE(tf.keras.Model):
     kl_tolerance = 0.5
 
     def __init__(self, latent_dim, results_dir, learning_rate=0.0001, load_model=True):
-
         super().__init__()
-
         self.latent_dim = latent_dim
         self.optimizer = tf.keras.optimizers.Adam(learning_rate)
 

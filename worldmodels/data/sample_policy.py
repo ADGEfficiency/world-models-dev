@@ -97,9 +97,9 @@ def controller_rollout(controller_gen, seed=42, episode_length=1000):
     return results[2]
 
 
-def save_episode(results, process_id, episode, seed, dtype='tf-record'):
+def save_episode(results, process_id, episode, seed, dtype='tfrecord'):
     """ saves data from a single episode to either record or np """
-    if dtype == 'tf-record':
+    if dtype == 'tfrecord':
         save_episode_tf_record(results_dir, results, process_id, episode)
     else:
         assert dtype == 'numpy'
@@ -127,7 +127,7 @@ def rollouts(
     results_dir,
     policy='random',
     generation=0,
-    dtype='tf-records'
+    dtype='tfrecord'
 ):
     """ runs many episodes """
     #  seeds always the length of the total rollouts per process
@@ -172,7 +172,7 @@ if __name__ == '__main__':
     parser.add_argument('--start_episode', default=0, nargs='?', type=int)
     parser.add_argument('--policy', default='random', nargs='?')
     parser.add_argument('--generation', default=0, nargs='?')
-    parser.add_argument('--dtype', default='tf-records', nargs='?')
+    parser.add_argument('--dtype', default='tfrecord', nargs='?')
     args = parser.parse_args()
     print(args)
 

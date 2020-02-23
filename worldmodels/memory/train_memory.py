@@ -12,7 +12,7 @@ import os
 import numpy as np
 import tensorflow as tf
 
-from worldmodels.dataset.tf_records import shuffle_samples, parse_latent_stats
+from worldmodels.data.tf_records import shuffle_samples, parse_latent_stats
 from worldmodels.memory.memory import Memory
 from worldmodels.params import memory_params, home
 
