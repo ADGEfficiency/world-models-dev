@@ -1,5 +1,5 @@
 ---
-title: 'World Models'
+title: 'World Models (the long version)'
 date: 2019-12-21
 categories:
   - Python, Machine Learning, Reinforcement Learning
@@ -7,73 +7,83 @@ excerpt: Ha & Schmidhuber's World Models (2018) reimplemented in Tensorflow 2.0.
 
 ---
 
+
 todo
+- map the code bases
+- link to four comp
+- redo vision image to be top down
+- consistency of links at top of the detais tech bits
+- lstm testing sections
+- quotes - at least 2 at the top
+- redo the monthly commits post, size, yaxis
+- transitions between all the major sections
 - summary section for v, m, c
 - medium version (lessons learnt / summary post, no code)
-
-use I!!!
+- where to talk about not learning with rewards in the control section -> where am I talking about this?????
 
 *See the reimplementation code base here - [ADGEfficiency/world-models](https://github.com/ADGEfficiency/world-models).*
 
 <center>
 	<img src="/assets/world-models/f0.gif">
-<figcaption>Performance of the final agent on a conveniently selected random seed. The cumulative episode reward is shown in the lower right.  This agent & seed achieves 893. 900 is solved.</figcaption>
+<figcaption>Performance of the final agent on a conveniently selected random seed. The cumulative episode reward is shown in the lower right.  </figcaption>
+<figcaption>This agent & seed achieves 893. 900 is solved.</figcaption>
 </center>
+
+<p></p>
 
 # Table of Contents
 
-# Key Resources
+todo
 
-I keep an extensive collection of resources for the World Models paper and it's associated components at [ADGEfficiency/rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models).
+# Resources
 
-Important resources are below:
-- my reimplementation code base - [ADGEfficiency/world-models](https://github.com/ADGEfficiency/world-models)
-- original paper code base - [hardmaru/WorldModelsExperiments](https://github.com/hardmaru/WorldModelsExperiments) - [advice on running the code base](http://blog.otoro.net/2018/06/09/world-models-experiments/) 
-- [interactive blog post](https://worldmodels.github.io/) - [2018 paper](https://arxiv.org/pdf/1803.10122.pdf) - World Models
+A full collection of the resources I used to develop the code base and write this article are kept in [ADGEfficiency/rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models).
+
+# Final Results Summary
+
+Distribution of the final agent performance (total reward per episode):
+
+<center>
+	<img src="/assets/world-models/final.png">
+<figcaption>Histogram of the best agent (Agent Five, generation 229) episode rewards across 48 random seeds.  900 is solved.</figcaption>
+</center>
+
+I spent a total of ! on the project (read more in !):
+
+|*Table 1 - AWS costs*|   Cost [$] |
+|:--------------------|-----------:|
+| compute-total       |       2485 |
+| storage-total       |       1162 |
+| total               |       3648 |
+
 
 # Motivations and Context
 
-My main side project in 2019 was a reimplementation of 2018's World Models by Ha & Schmidhuber.
+> Dream no small dreams, they have no power to move men - Johann Wolfgang von Goethe
 
-This project dominated any spare time I had - usually one to three days per month.  
+My main side project in 2019 was this reimplementation of 2018's **World Models by David Ha & Jürgen Schmidhuber**. I usually I found one to three days per month to work on it.
 
-A plot of my monthly GitHub activity (see more in the section !):
+My monthly commits activity gives you an idea of the variance of my monthly commitment:
 
 <center>
 	<img src="/assets/world-models/commits-month.png">
-	<figcaption>Commits per month.  Not all commits are made equal.</figcaption>
+	<figcaption>Commits per month (excludes blog post commits).  Not all commits are made equal.</figcaption>
   <div></div>
 </center>
 
-Total project AWS costs are below. I spent a total of $3,647 on the project (see more in the section !):
-
-|*Table 1 - AWS costs*                     |   Cost [$] |
-|:--------------------|-----------:|
-| controller          |       1506 |
-| vae-and-memory      |        602 |
-| sample-experience   |         95 |
-| sample-latent-stats |        255 |
-| misc                |         25 |
-| **compute-total**       |       2485 |
-| s3                  |         54 |
-| ebs                 |       1108 |
-| **storage-total**       |       1162 |
-| **total**               |       3648 |
-
-
 ## Why reimplement a paper?
 
-The original idea for reimplementing a paper came from reading an Open AI job advertisement.  Seeing a tangible goal that could put me in the ballpark of a world class machine learning lab, I set out looking for a paper to reimplement.  
+The idea for reimplementing a paper came from Open AI job advertisement requirement.  Seeing a tangible goal that could put me in the ballpark of a world class machine learning lab, I set out looking for a paper to reimplement.  
 
-I specifically remember reading **high quality implementation**.  This echoed in my mind as I developed the project.
+**I remember reading high quality implementation**.  This echoed in my mind as I developed the project.
 
 ## Why reimplement World Models?
 
-World Models is one of three machine learning papers that were significant for me.
+World Models is one of three machine learning papers that have been blown me away in my short time working with machine learning.
 
 ### DQN
 
-The first blew me away without me even reading it.  I have a memory of seeing a YouTube video DQN playing the Atari game Breakout.  Even though I knew nothing of reinforcement learning, the significance of a machine could learn to play a video game from pixels was made clear.
+The first paper was DQN, which blew me away without me even reading it.  I have a memory of seeing a YouTube video DQN playing the Atari game Breakout.  Even though I knew nothing of reinforcement learning, the significance of a machine could learn to play a video game from pixels was clear.
 
 <center>
 <iframe width="560" height="315" src="https://www.youtube.com/embed/V1eYniJ0Rnk" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -84,12 +94,14 @@ I had no way of knowing that the algorithm I was watching would be one I impleme
 
 ### AlphaGo Zero
 
-The second paper is AlphaGo Zero.  The publication of AlphaGo Zero in October 2017 came out after I had taught my course on reinforcement learning twice.
+The second paper was AlphaGo Zero.  The publication of AlphaGo Zero in October 2017 came out after I had taught my course on reinforcement learning twice.
 
 <center>
 	<img src="/assets/world-models/Zero_act_learn.png">
-	<figcaption>The raw observation (96, 96, 3) - the resized observation (64, 64, 3) - the learnt latent variables (32,)</figcaption>
-  <div></div>
+	<figcaption>
+		<a href="https://www.nature.com/articles/nature24270.epdf?author_access_token=VJXbVjaSHxFoctQQ4p2k4tRgN0jAjWel9jnR3ZoTv0PVW4gB86EEpGqTRDtpIz-2rmo8-KG06gqVobU5NSCFeHILHcVFUeMsbvwS-lxjqQGg98faovwjxeTUgZAUMnRQ">Silver et. al (2017) Mastering the game of Go without human knowledge</a> with additional annotations
+	</figcaption>
+	<div></div>
 </center>
 
 At this stage (9 months after my transition into data science), I didn't fully grasp all of the mechanics in AlphaGo.  But I knew enough to understand the significance of the changes - *tabula rasa* learning among the most important.
@@ -98,80 +110,34 @@ At this stage (9 months after my transition into data science), I didn't fully g
 
 <center>
 	<img src="/assets/world-models/ha-blog.png">
-<figcaption>from https://worldmodels.github.io/ </figcaption>
+<figcaption><a href="https://worldmodels.github.io/">https://worldmodels.github.io/</a></figcaption>
 </center>
 
-The third paper is World Models. World Models is an example of strong technical work presented well.
+The third paper was World Models. World Models is an example of strong technical work presented well. Ha & Schmidhuber's [2018 paper](https://github.com/ADGEfficiency/rl-resources/blob/master/world-models/2018_Ha_world_models.pdf) was accompanied by a [blog post](https://worldmodels.github.io/) that was both interactive and full of `.gif`s, making the work engaging and impressive. 
 
-Ha & Schmidhuber's 2018 paper was accompanied by a blog post that was both interactive and full of moving images. Alongside this outstanding presentation is technical work where supervised and unsupervised learning providing representations to an evolutionary controller.
+Alongside is outstanding technical work, which we will explore in detail in this post. I had never worked with any of the techniques before reimplementing World Models. The influence has been visible in the projects of my students at [Data Science Retreat](https://www.datascienceretreat.com/).  
 
-I had never worked with any of these techniques before reimplementing World Models. The influence of me learning these techniques has been visible in the projects of my students at [Data Science Retreat](https://www.datascienceretreat.com/).  Shout out to Mack (MDN), Samson (VAE) and Stas (World Models + PPO).  Thank you to them for allowing me to improve my understanding in parallel with theirs.
+Shout out to Mack (who used a mixed density network to predict hospital triage codes), Samson (who used a variational auto-encoder to detect images of football games) and Stas (who combined the World Models vision & memory with a PPO controller).  Thank you to them for allowing me to improve my understanding in parallel with theirs.
 
 ## The promise of learning a model of the world
 
-We operate in a world with spatial and temporal dimensions.  A **world model** is an abstract representation of these dimensions.  In a control problem, a world model can be useful in a number of different ways.
+We operate in a world with spatial and temporal dimensions - **a world model is an abstract representation of these dimensions**.  In a control problem, a world model can be useful in a number of ways.
 
-One use of a world model is to **use their low dimensional, internal representations for control**.  We will see that the World Models agent uses it's vision and memory in this way.  The value of having these low dimensional representations is that both prediction and control are easier in low dimensional spaces.
+**One use is to use their low dimensional, internal representations for control**.  We will see that the World Models agent uses it's vision and memory in this way.  The value of having these low dimensional representations is that both prediction and control are easier in low dimensional spaces.
 
-Another use of a world model is to **generate data for training**.  A model that is able to predict the environment observation and reward transition dynamics can be used recurrently to generate rollouts.
+**Another use is to generate data for training**.  A model that is able to approximate the environment transition dynamics can be used recurrently to generate rollouts of simulated experience.
 
-**These two uses can be combined together**, where world models are used to generate rollouts in the low dimensional, internal representation spaces.  This is *learning within a dream*.
+These two uses can be combined together, where world models are used to generate rollouts in the low dimensional, internal representation spaces.  **This is learning within a dream**, and is demonstrated by Ha & Schmidhuber on the `ViSDoom` environment.
 
-The value of these different approaches is clear to anyone who (like I have), has spent time building or learning environment models. The sample inefficiency of modern reinforcement learning agents means that an environment models is required for simulation.
+The value of these different approaches is clear to anyone who has spent time building or learning environment models. The sample inefficiency of modern reinforcement learning agents means that an environment models is required for training - sampling from the real world is too slow.
 
-I encountered this problem in industry, as an energy data scientist at Tempus Energy.  We had no simulator, and struggled to learn an environment model from limited amounts of customer data.
+I encountered this problem as an data scientist at Tempus Energy.  We had no simulator of our business problem, and struggled to learn one from limited amounts of customer data.  Part of the motivation of this reimplementation was to learn more about how environment models can be learnt.
 
-## The four competences
-
-<center>
-	<img src="/assets/world-models/bach-bacteria.jpg">
-</center>
-
-<p></p>
-
-I read Daniel C. Dennet's *From Bacteria to Bach and Back* in 2018.  In the book Dennet introduces **four grades of competence** (competence being the ability to act well).
-
-Each of these four grades is a successive application of generate, test & select (more on that in Evolution).  I have found them invaluable for organizing computational control algorithms.
-
-The first grade is **Darwinian**.  This agent has pre-designed and fixed competences.  It doesn't improve within it's lifetime, with global improvement occuring via local selection.  Examples include cells and computational evolutionary algorithms.
-
-The second grade is **Skinnerian**.  This agent has the ability to improve it's behaviour by learning to respond to reinforcement.  Examples include animals and model-free reinforcement learning.
-
-The third grade is **Popperian**.  This agent learns models of the environment, enabling the ability to locally improve via testing behaviours with the learnt model.  Examples include crows, cats, dogs, dolphins, primates and model-based reinforcement learning.
-
-The final grade is **Gregorian**.  This agent builds thinking tools, such as arithmetic, democracy & computers.  Local improvement is possible via higher order control of mental searches, which are systematic explorations.  The only biological example we have is humans - I do not know of a computational method that builds it's own thinking tools.
-
-The optimization algorithm used to find good parameters of the controller (CMA-ES) is a Darwinian learner.  The full World Models agent is Popperian.
-
-## Markov Decision Process
-
-A Markov Decision Process (MDP) is a mathematical framework for decision making.  Commonly the goal of an agent in an MDP is to maximize the expectation of future rewards.  It can be defined as:
-
-$$ (\mathcal{S}, \mathcal{A}, \mathcal{R}, P, R, d_0, \gamma, H) $$
-
-- set of states $\mathcal{S}$
-- set of actions $\mathcal{A}$
-- set of rewards $\mathcal{R}$
-- state transition function $ P(s' \mid s,a) $
-- reward transition function $ R(r \mid s,a,s') $
-- distribution over initial states $d_0$
-- discount factor $\gamma$
-- horizion $H$
-
-It is common to make the distinction between the state $s$ and observation $x$.  The state represents the true state of the environment and has the Markov property.  
-
-The observation is what the agent sees.  The observation is less informative, and often not Markovian.
-
-Because the World Models agent uses the total episode reward as a learning signal, there is no role for a discount rate $\gamma$.
-
-The data collected by an agent interacting with an environment is a sequence of transitions, with a transition being a tuple of observation, action, reward and next state:
-
-$$ \text{transition} = (x, a, r, x') $$
-
-Both the vision and memory components learn only from the first two elements (observation and action).
-
+Now that we understand the motivations and context of this project, we can look at one side of the Markov Decision Process (MDP) coin - the environment.  If you aren't familiar with what an MDP is, take a look at the [Appendix]().
 
 # The Environment
+
+> Do not seek to have events happen as you want them to, but instead want them to happen as they do happen, and your life will go well - Epictetus
 
 Our agent interacts with the `car-racing-v0` environment from OpenAI's `gym` library.  I used the same version of `gym` as the paper codebase (`gym==0.9.4`).
 
@@ -181,7 +147,27 @@ We can describe the `car-racing-v0` environment as a Markov Decision Process.
 
 In the `car-racing-v0` environment, the agents **observation space** is raw image pixels $(96, 96, 3)$ - this is cropped and resized to $(64, 64, 3)$.
 
-The observation has both a spatial $(96, 96, 3)$ and temporal structure, given the sequential nature of sampling transitions from the environment.
+This was where I made a mistake in my first agent - as you can see from the `.gif` below, the image renders much different than the images shown in the paper.  The reason is a different resampling filter.
+
+This was not the main problem with Agent One (it was an exploration problem - more on that in Section !).
+
+<center>
+	<img src="/assets/world-models/first.gif">
+<figcaption>Performance of Agent One with the incorrect resizing.  Note that the poor driving is due to an exploration problem.</figcaption>
+</center>
+
+You can see more detail on the resizing in the notebook [world-models/notebooks/resizing-observation.ipynb](https://github.com/ADGEfficiency/world-models-dev/blob/master/notebooks/resizing-observation.ipynb).  The final function used is given below, and uses `PIL.Image.BILINEAR`:
+
+```python
+def process_frame(frame, screen_size=(64, 64), vertical_cut=84, max_val=255, save_img=False):
+    """ crops, scales & convert to float """
+    frame = frame[:vertical_cut, :, :]
+    frame = Image.fromarray(frame, mode='RGB')
+    obs = frame.resize(screen_size, Image.BILINEAR)
+    return np.array(obs) / max_val
+```
+
+The observation has both a spatial $(96, 96, 3)$ and temporal structure, given the sequential nature of sampling transitions from the environment.  An observation is always a single frame.
 
 <center>
 	<img src="/assets/world-models/f1-final.png">
@@ -189,17 +175,15 @@ The observation has both a spatial $(96, 96, 3)$ and temporal structure, given t
   <div></div>
 </center>
 
-In DQN four environment observations are stacked to make the observation more Markovian.  This isn't done in World Models - the observation is a single frame.
-
 The **action space** has three continuous dimensions - `[steering, gas, break]`.  This is a continuous action space - the most challenging for control.
 
 The **reward** function is $-0.1$ for each frame, $+1000 / N$ for each tile visited, where $N$ is the total tiles on track.  This reward function encourages quickly driving forward on the track.
 
-The **horizon** (aka episode length) is set to $1000$ throughout the paper codebase.  Changing this can have interesting effects on agent performance, and I wonder how significant this hyperparameter is on final agent performance.
+The **horizon** (aka episode length) is set to $1000$ throughout the paper codebase.  Changing this can have interesting effects on agent performance.  It is unclear how convenient this choice is - LSTM's (which power the agent's memory) can often struggle with very long sequences.
 
 ## Working with `car-racing-v0`
 
-Of particular importance is using `env.viewer.window.dispatch_events()` in the `reset()` and `step()` methods of the environment ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
+One important hack is to use `env.viewer.window.dispatch_events()` in the `reset()` and `step()` methods of the environment ([see the GitHub issue here](https://github.com/openai/gym/issues/976)).  If you don't use it you will get corrupt environment observations!
 
 <center>
 	<img src="/assets/world-models/corrupt.jpeg">
@@ -212,7 +196,7 @@ Of particular importance is using `env.viewer.window.dispatch_events()` in the `
 self.viewer.window.dispatch_events()
 ```
 
-See the notebook [`worldmodels/notebooks/car_race_consistency.ipynb`](https://github.com/ADGEfficiency/world-models/blob/master/notebooks/car_race_consistency.ipynb) for more infomation about avoiding corrupt `car-racing-v0` observations.
+See the notebook [`worldmodels/notebooks/car_race_consistency.ipynb`](https://github.com/ADGEfficiency/world-models/blob/master/notebooks/car_race_consistency.ipynb) for more about avoiding corrupt `car-racing-v0` observations.
 
 Below the code for sampling environment observations is given in full ([source here](https://github.com/ADGEfficiency/world-models-dev/blob/master/worldmodels/dataset/car_racing.py)):
 
@@ -221,7 +205,12 @@ Below the code for sampling environment observations is given in full ([source h
 # worldmodels/dataset/*
 ```
 
+
 # The Agent
+
+> We shall not cease from exploration, and the end of all our exploring will be to arrive where we started and know the place for the first time - T.S. Eliot
+
+Now that we know what environment our agent will interact with, we can start to explore how the World Models agent works. 
 
 <center>
 	<img src="/assets/world-models/agent.png">
@@ -229,19 +218,25 @@ Below the code for sampling environment observations is given in full ([source h
   <div></div>
 </center>
 
-In a Markov Decision Process the agent is the **learner and decision maker**.  By interacting with the environment, an agent learns to improve it's policy (rules to select actions).  **The World Models agent has three components.**
+## The three components
 
-The first component is **vision**.  The vision component compresses a high dimensional observation of the environment $x$ to a latent space $z$.  This low dimensional representation is used as one of the two inputs to the controller.
+The World Models agent has three components.
 
-The second component is **memory**.  The memory component predicts the next latent state $z'$ from the current latent state $z$.  The agent never uses the predicted next latent state $z'$ (which represents only one step in the future) but instead the hidden state $h$ is used to predict $z'$.  The low dimensional hidden state is the second input to the controller.
+**The first component is vision**.  The vision component compresses the high dimensional environment observation $x$ to a latent space $z$.  This low dimensional representation is used as one of the two inputs to the controller.
 
-The third component is the **controller**.  The controller is a linear function that takes the vision latent state $z$ and the hidden state $h$ and maps to an action.  The controller parameters are found using an evolutionary algorithm.
+**The second component is memory**.  The memory component predicts the next latent state $z'$ from the current latent state $z$.  The agent never uses the predicted next latent state $z'$ (which represents only one step in the future) but instead the hidden state $h$ is used to predict $z'$.  The low dimensional hidden state is the second input to the controller.
 
-It is curious that our agent never uses the final output of either the vision or the memory in the controller.  For both components the agent make use of **internal representations** (of space or time respectively) to make decisions with.
+**The third component is the controller**.  The controller is a linear function that takes the vision latent state $z$ and the hidden state $h$ and maps to an action.  The controller parameters are found using an evolutionary algorithm.
 
-Note also that the vision and memory are **unsupervised**.
+It is curious that our agent never uses the final output of either the vision or the memory in the controller.  **For both the vision and memory the controller makes use of their internal representations**, rather than the final output of the model.
+
+Both the vision & memory components are trained without access to rewards - they learn only from the observations and actions. Rewards are only used to learn parameters of the controller.
+
+This means that the vision and memory components are not concurrently learning both representations of the environment and doing credit assignment.  It also means that the vision & memory might learn features of the environment that are not useful for control.
 
 # Vision
+
+> It's not what you look at that matters, it's what you see - Henry David Thoreau
 
 <center>
 	<img src="/assets/world-models/vae.png">
@@ -251,35 +246,29 @@ Note also that the vision and memory are **unsupervised**.
 
 ## Why do we need to see?
 
-Much like us, our agent uses vision to understand the current state of the environment.  In the World Models agent, the vision component is separate.
+Much like us, our agent uses vision to understand the current state of its environment. 
 
-The World Models vision learns a low dimensional representation of the environment observation.  This gives us a definition of vision as **dimensionality reduction**.  It is the process of reducing high dimensional data into a lower dimensional space.
+In the World Models agent, the vision component provides understanding by learning a low dimensional representation of the observation.  **This gives us an interpretation of vision as dimensionality reduction**.  It is the process of reducing high dimensional data into a lower dimensional space.
 
-The canonical example is image classification, where an image can be mapped throughout a convolutional neural network to a predicted class (cat or dog). Another would be the flight or fight response, where visual infomation is mapped to a simple binary decision.
+The canonical example is image classification, where an image can be mapped throughout a convolutional neural network to a predicted class (cat or dog). Another would be the flight or fight response, where visual information is mapped to a simple binary decision.
 
 In our `car-racing-v0` environment, a low dimensional representation of the environment observation might include:
 
 ```python
-observation = [
- on_road = 1,
- corner_to_the_left = 1,
- corner_to_the_right = 0
-]
+observation = [on_road=1, corner_to_the_left=1, corner_to_the_right=0]
 ```
 
-Using these three numbers, we could imagine deriving a simple control policy.  Try to do this with 27,648 numbers arranged in a shape (96, 96, 3)!
+Using these three numbers, we could imagine deriving a simple control policy.  Try to do this with $27,648$ numbers arranged in a shape $(96, 96, 3)$!
 
-We need to see in order to reduce high dimensional data
+We have a definition of vision as reducing high dimensional data into a low dimension, so that we can use it to take actions.  How then does our agent see?
 
-Vision is dimensionality reduction.  How does our agent see?
+## What the agent sees
 
-## What the controller sees
-
-The vision of the World Models agent reduces the environment observation $x$ (96, 96, 3) into a low dimensional representation $z$ (32,) known as the **latent space**.
+The vision of the World Models agent reduces the environment observation $x$ $(96, 96, 3)$ into a low dimensional representation $z$ $(32,)$ known as the **latent space**.
 
 The latent representation is **hidden**.  It is unobserved - we have no labels for these 32 variables.  The controller uses the latent representation $z$ as one of its inputs.  It never uses $x$ (or it's reconstruction $x'$) directly.
 
-How do we learn this latent representation if we don't have examples?  One technique is a Variational Autoencoder.
+How do we learn this latent representation if we don't have examples? The model used by the World Models agent is a Variational Autoencoder.
 
 ## The Variational Autoencoder
 
@@ -287,41 +276,7 @@ A **Variational Autoencoder (VAE)** forms the vision of our agent.
 
 The VAE is a **generative** model that learns the data generating process.  The data generating process is $P(x,z)$ - the joint distribution over our data (the probability of $x$ and $z$ occurring together).
 
-## Generative versus discriminative models
-
-All approaches in supervised learning are either generative or discriminative.
-
-### Generative models
-
-**Generative models learn a joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models generate new, unobserved data $x'$.
-
-We can derive this process for generating new data, from the definition of conditional probability:
-
-$$ P(x \mid z) = \frac{P(x, z)}{P(z)} $$
-
-Rearranging this definition gives us a decomposition of the joint distribution. This is the product rule of probability:
-
-$$P(x, z) = P(x \mid z) \cdot P(z)$$
-
-This decomposition describes the entire generative process.  First sample a latent representation:
-
-$$z \sim P(z)$$
-
-Then sample a generated data point $x'$, using the conditional probability $P(x \mid z)$:
-
-$$x' \sim P(x \mid z)$$
-
-These sampling and decoding steps only describe the generation of new data $x'$ from an unspecified generative model.  It doesn't describe the entire structure of a VAE.
-
-### Discriminative models
-
-Unlike generative models, **discriminative models learn a conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models predict, using observed $z$ to predict $x$.  This is simpler than generative modelling.
-
-A common discriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a predicted class.
-
-Now we understand the context of generative models in supervised learning, we can look at the context of the VAE within generative models.
-
-Where do generative models fit in the context of other supervised learning methods?
+*If the generative/discriminative concepts are unfamiliar, take a look at [Appendix Two]().*
 
 ### The VAE in context
 
@@ -343,48 +298,21 @@ The VAE has less in common with classical (sparse or denoising) autoencoders, wh
 
 A major benefit of generative modelling is the ability to generate new samples $x'$.  Yet our World Models agent never uses $x'$ (whether a reconstruction or a new sample).
 
-The role of the VAE in our agent is to provide a compressed representation $z$ by learning to encode and decode a latent space.
+The role of the VAE in our agent is to provide a compressed representation $z$ by learning to encode and decode a latent space.  This lower dimensional latent space is easier for our memory and controller to work with.
 
-The lower dimensional latent space is easier for our memory and controller to work with.
-
-What qualities do we want in our latent space?  One is **meaningful grouping**.  This requirement is a challenge in traditional autoencoders, which tend to learn spread out latent spaces.
+What qualities do we want in our latent space?  **One is meaningful grouping**.  This requirement is a challenge in traditional autoencoders, which tend to learn spread out latent spaces.
 
 Meaningful grouping means that similar observations exist in the same part of the latent space, with samples that are close together in the latent space producing similar images when decoded.  This grouping means that even observations that the agent hadn't seen before could be responded to the same way.
 
-Meaningful grouping also allows **interpolation** - meaning that we can understand observations we haven't seen before, if they are encoded close to observations we have seen before.
+**Meaningful grouping also allows interpolation** - meaning that we can understand observations we haven't seen before, if they are encoded close to observations we have seen before.
 
-So how do we get meaningful encoding of an observation?  One technique is to constrain the size of the latent space (32 variables for the World Models VAE).  The VAE puts even more effort into TODO
+So how do we get meaningful encoding of an observation?  One technique is to constrain the size of the latent space (32 variables for the World Models VAE).  The VAE puts even more effort into TODO !!!
 
 ## VAE structure
 
-The VAE is formed of three components - an encoder, a latent space and a decoder.  But before we discuss these, we need to introduce convolution.
+The VAE is formed of three components - an encoder, a latent space and a decoder.  
 
-### Convolution
-
-<center>
-	<img src="/assets/world-models/conv.png">
-	<figcaption>2D convolution with a single filter</figcaption>
-  <div></div>
-</center>
-
-volume to volume operation, layer = set of filters, pooling = reduces size at cost of infomation
-
-At the heart of convolution is the filter (sometimes called a kernel).  These are usually defined as two dimensional, with the third dimension being set to match the number of channels in the image (3 for RGB).
-
-Different kernels are learnt at different layers - shallower layers learn basic features such as edges, with later layers having filters that detect complex compositions of simpler features.
-
-We can think about these kernels operating on tensors of increasing size:
-- matrix (3, 3) * kernel (3, 3) -> scalar (1, )
-- image (6, 6, 1) * kernel (3, 3, 1) -> image (6, 6, 1)
-- image (6, 6, 1) * n kernels (n, 3, 3, 1) -> tensor (6, 6, 1, n)
-
-Important hyperparameters in convolutional neural networks:
-- size of filters (typically 3x3)
-- number of filters per layer
-- padding
-- strides
-
-Due to reusing kernels, the convolutional neural network is translation invariant, meaning the features can be detected in different parts of the images.  This is ideal in image classification.  Max-pooling (commonly used to downsample the size of the internal representation) also produces translation invariance.
+But before we discuss these, we will quickly take at look at the operation at the heart of modern computer vision - convolution.!!!
 
 ### Encoder
 
@@ -396,7 +324,7 @@ The encoder is built from convolutional blocks that map from the input image ($x
 
 Constraining the size of the latent space (length 32) is one way auto-encoders learn efficient compression of images.  All of the information needed to reconstruct a sample $x$ must exist in only 32 numbers!
 
-The statistics parameterized by the encoder are used to form a distribution over the latent space - a diagonal Gaussian.  A diagonal Gaussian is a muntivariate Gaussian with a diagonal covariance matrix.  This means that each variable is independent.
+The statistics parameterized by the encoder are used to form a distribution over the latent space - a diagonal Gaussian.  A diagonal Gaussian is a multivariate Gaussian with a diagonal covariance matrix.  This means that each variable is independent.
 
 (is this enforcing a gaussian prior or posterior?)
 
@@ -534,9 +462,9 @@ $$ - \mathbf{E}_{z \sim E_{\theta}} \Big[ \log D_{\theta} (x' \mid z) \Big] $$
 
 The first term in the VAE loss function is the log-likelihood of reconstruction - given latent variables $z$, the distribution over $x'$.  The latent variables are sampled from our encoder (hence the expectation $\mathbf{E}_{z \sim E_{\theta}}$).
 
-Minimizing the negative log-likelihood is equivilant to likelihood maximization.  In our case, the likelihood maximization maximizies the similarity between  the distribution over our training data $P(x \mid z)$ and our parametrized approximation.
+Minimizing the negative log-likelihood is equivalent to likelihood maximization.  In our case, the likelihood maximization maximizes the similarity between  the distribution over our training data $P(x \mid z)$ and our parametrized approximation.
 
-Section 5.1 of the fountional [Deep Learning textbook](http://www.deeplearningbook.org/)  that for a Gaussian approximation, maximizing the log-likelihood is equivilant to minimizing mean square error ($\mathbf{MSE}$):
+Section 5.1 of the [Deep Learning textbook](http://www.deeplearningbook.org/)  that for a Gaussian approximation, maximizing the log-likelihood is equivalent to minimizing mean square error ($\mathbf{MSE}$):
 
 $$\mathbf{MSE} = \frac{1}{n} \sum \Big( \mid \mid x' - x \mid \mid \Big)^{2} $$
 
@@ -585,15 +513,34 @@ A note on the use of $\log \sigma^{2}$ - we force our network to learn this by t
 
 Because our encoder is stochastic, we need one last trick - a rearrangement of the model architecture, so that we can backprop through it.  This is the **reparameterization trick**, and results in a latent space architecture as follows:
 
-fig - 2.3 2019, 4 in 2016
-
 $$ n \sim \mathcal{N}(0, 1) $$
 
 $$ z = \sigma_{theta} (x) \cdot n + \mu_{theta} (x) $$
 
 After the refactor of the randomness, we can now take a gradient of our loss function and train the VAE.
 
+### Final VAE loss function
+
+kl_tolerance
+
 ## Vision - Summary
+
+Below a few 
+
+<center>
+	<img src="/assets/world-models/vae-training.png">
+<figcaption>Training curve of the first iteration VAE over 8 epochs.  You can clearly see the effect of the `kl_tolerance=16`.</figcaption>
+</center>
+
+<center>
+	<img src="/assets/world-models/vae-reconstructions.png">
+<figcaption>Reconstructions from the final VAE</figcaption>
+</center>
+
+<center>
+	<img src="/assets/world-models/vae-noise.png">
+<figcaption>Images reconstructed from sampling the latent space prior $z \sim \mathbf{N} (0, 1)$</figcaption>
+</center>
 
 The contributions of the VAE are:
 - variational inference to approximate
@@ -611,13 +558,7 @@ The reasons why we use the VAE in the World Models agent:
 
 # Memory
 
-## Why do we remember?
-
-For a human, memory has many roles.
-
-For our World Models agent, the agent remembers past transitions in order to predict future transitions.
-
-## The World Models memory
+> Prediction is very difficult, especially if it's about the future - Nils Bohr
 
 <center>
 	<img src="/assets/world-models/memory.png">
@@ -625,13 +566,21 @@ For our World Models agent, the agent remembers past transitions in order to pre
   <div></div>
 </center>
 
-The memory of the World Models agent is a discriminative model, that models the conditional probability:
+The memory of the World Models agent is a discriminative model, that models the conditional probability of seeing an environment transition.
 
 $$ P(z' | z, a) $$
 
+## Why do we remember?
+
+For us, memory has many roles.   Some think that the entire purpose of life is to generate good memories.
+
+For our World Models agent, the agent remembers past transitions in order to predict future transitions.  However, the agent does not make use of the predictions of the memory, instead it makes use of an internal representation - the hidden state of an LSTM.
+
+## What the agent remembers
+
 The primary role of the memory in the World Models agent is compression of the future into a low dimensional representation $h$.
 
-This low comression of time $h$ is the hidden state of an LSTM.
+This low compression of time $h$ is the hidden state of an LSTM.
 
 The LSTM to trained only to predict the next latent vector $z'$, but learns a longer representation of time via hidden state (specifically $h$)
 
@@ -782,14 +731,18 @@ The next test was with an LSTM generating the statistics of the mixture:
 
 ### Unit testing
 
-The performance based testing was combined with lower level unit testing:
+The performance based testing was combined with lower level unit testing, kernels etc
 
 ```python
 
 ```
 
-### Training results
+### Memory - Summary
 
+<center>
+	<img src="/assets/world-models/memory-training.png">
+<figcaption>Training curve for the memory for Agent Four (40 epochs)</figcaption>
+</center>
 
 ```python
 # mem, train mem
@@ -798,62 +751,52 @@ The performance based testing was combined with lower level unit testing:
 
 # Control
 
+> Never let the future disturb you. You will meet it, if you have to, with the same weapons of reason which today arm you against the present - Marcus Aurelius
+
 $$ C_{\theta}(a' \mid z, h) $$
 
 The final component of the World Models agent is the controller.
 
-The vision and memory components provide a compressed representation of the current and future environment observations.
+The vision and memory components provide a compressed representation of the current and future environment observations to the controller.  Both learn these representations without access to the environment reward signal.
 
-The controller is a simple linear function that maps from these compressed representations ($z$ and $h$) to an action $a$.
+The controller is a simple linear function that maps from these compressed representations ($z$ and $h$) to an action $a$.  We want to find values for these parameters that will maximize the expected reward of our agent in the `Car-RacingV0` environment.
 
-The algorithm used by the World Models agent for finding the controller parameters is Covariance Matrix Adapation Evolution Stragety (CMA-ES).
+The algorithm used by the World Models agent for finding these parameters is Covariance Matrix Adapation Evolution Stragety (CMA-ES).
 
 ## Why do we need control?
 
-Earlier we introduced the Markov Decision Process (MDP), a mathematical framework for decision making, where an agent interacts with an environment.  One task required by agents in an MDP is credit assignment - determining which actions lead to reward.  An agent that understands credit assignment can use this understanding to select good actions.
+Earlier we introduced the Markov Decision Process (MDP), a mathematical framework for decision making, where an agent interacts with an environment.  One task required by agents in an MDP is **credit assignment** - determining which actions lead to reward.  An agent that understands credit assignment can select good actions.
 
-In reinforcement learning, credit assignment is often learnt by a function that also learns other tasks, such as learning a low dimensional representation of a high dimensional image.  An example of this is the action-value
+In reinforcement learning, credit assignment is often learnt by a function that also learns other tasks, such as learning a low dimensional representation of a high dimensional image.  An example is DQN, the action-value function learns to both extract features from the observation and map them to an action.
 
-In DQN, the action-value function learns to both extract features from the observation and map them to an action.
+In the World Models agent these tasks are kept separate, with vision responsible for learning a spatial representation and the memory learning a temporal representation.  This separation allows the use of a simple linear controller, completely dedicated to learning how to assign credit.
 
-In the World Models agent these tasks are kept separate, with vision responsible for learning a spatial representation and the memory learning a temporal representation.
-
-This separation allows the use of a simple linear controller, compeletly dedicated to learning how to assign credit.
-
-Another benefit of having a simple, low parameter count controller is that it opens up less sample efficient but more general methods for finding the model parameters.
-
-The downside of this is that our vision and memory might use capacity to learn features that are not useful for control, or not learn features that are useful.
+Having a simple, low parameter count controller opens up less sample efficient but more general methods for finding the model parameters.  The downside of this is that our vision and memory might use capacity to learn features that are not useful for control, or not learn features that are useful.
 
 ## Evolution
 
-Evolutionary learning is the driving force in our universe.  At the heart of evolution is a paradox - that failure at a low level leads to improvement at a high level.  Examples of learning from failure include biology, business, training neural networks and personal development.
-
-Earlier we introduced the four competences, of which evolutionary algorithms sit right at the bottom.  Evolutionary (or Darwinian) learning is inspired by biological evolution, and is characterized by fixed competence (no learning) within an agents lifetime.
+Evolution is the driving force in our universe.  At the heart of evolution is a paradox - failure at a low level leading to improvement at a high level.  Examples include biology, business, training neural networks and personal development.
 
 Evolution is iterative improvement using a generate, test, select loop:
-- in the **generate** step a population is generated, using infomation from previous steps.
-- in the **test** step, the population interacts with the environment, and is assigned a single number as a score.
-- in the **select** step, members of the current generation are selected (based on their fitness) to be used to generate the next step.
-
-```
-for generation
-  generate
-  test
-  select
-```
+- in the **generate** step a population is generated, using infomation from previous steps
+- in the **test** step, the population interacts with the environment, and is assigned a single number as a score
+- in the **select** step, members of the current generation are selected (based on their fitness) to be used to generate the next step
 
 There is so much to learn from this evolutionary process:
 - failure at a low level driving improvement at a higher level
 - the effectivness of iterative improvement
 - the requirement of a dualistic (agent and environment) view
 
-We now have an understanding of the general process of evolutionary learning.  Now let's look at how we do this *in silico*.
+
+We now have an understanding of the general process of evolutionary learning.  Let's look at how we do this *in silico*.
 
 ## Computational evolution
 
 Computational evolutionary algorithms are inspired by biological evolution.  They perform non-linear, non-convex and gradient free optimization.  Evolutionary methods can deal with the challenges that discontinuities, noise, outliers and local optima pose in optimization.
 
-Computational evolutionary algorithms are often the successive process of sampling parameters of a function (i.e. a neural network) from a distribution.  This process can be further extended by other biologically inspried mechanics, such as crossover or mutation - knownn as genetic algorithms.
+Computational evolutionary algorithms are often the successive process of sampling parameters of a function (i.e. a neural network) from a distribution.  This process can be further extended by other biologically inspired mechanics, such as crossover or mutation - known as genetic algorithms.
+
+Evolution is an example of Darwinian competence (see [The four competences]), with agents that don't learn within their lifetime.  From a computational perspective, this means that the controller parameters are fixed within each generation.
 
 A common Python API for computation evolution is the **ask, evaluate and tell** loop.  This can be directly mapped onto the generate, test & select loop introduced above:
 
@@ -867,198 +810,158 @@ for population in range(populations):
   solver.tell(parameters, fitness)
 ```
 
-From a practical standpoint, the most important features of evolutionary methods are:
-- general purpose optimization
-- poor sample efficiency
-- parallelizability
+From a practical standpoint, the most important features of computational evolutionary methods are:
+- general purpose optimization that can handle noisy, ill-conditioned, non-linear problems
+- poor sample efficiency, due to learning from a weak signal (total episode reward)
+- parallelizable, due to the rollouts of each population member being independent of the other population members
 
 ### General purpose optimization
-
-> Randomized search algorithms are regarded to be robust in a rugged search landscape,which can comprise discontinuities, (sharp) ridges, or local optima
-> outliers, noise
 
 Evolutionary algorithms learn from a single number per generation - the total episode reward.  This single number serves as a measurement of a population's fitness.
 
 This is why evolutionary algorithms are **black box** - unlike less general optimizers they don't learn from the temporal structure of the MDP.  They are also gradient free.
 
+This black box approach, combined with a reliance on random search, allows evolutionary methods to be robust in challenging search spaces.  They can handle problems that other, more complex optimization methods struggle with, such as discontinuities, local optima and noise.
+
 ### Sample inefficiency
 
-How sample efficient an algorithm is depends on how much experience (measured in transition between states in an MDP) an algorithm needs to achieve a given level of performance.
+The cost of having a general purpose learning method is sample efficiency. By not exploiting information such as the temporal structure of an episode, or gradients, evolutionary methods must rely on lots of sampling to learn.
 
-It is of key concern if compute is purchased on a variable cost basis.
+How sample efficient an algorithm is depends on how much experience (measured in transition between states in an MDP) an algorithm needs to achieve a given level of performance.  It is of key concern if compute is purchased on a variable cost basis.
 
-The causes of sample inefficiency are
-- noisy signal
-- weak signal
-
-Working in opposition to these are:
-- less computation per episode
-- ability to parallelize
+The inherit sample inefficiency of evolutionary algorithms is counteracted by requiring less computation per episode (i.e. no gradient updates inbetween transitions) and being able to parallelize rollouts.
 
 ### Parallel rollouts
 
-A key feature of Darwinian learning is fixed competence, with population members not learning within lifetime.  This feature means that each population member can learn independently, and hence be parallelized.
-
-This is a major benefit of evolutionary methods, which helps to counteract their sample inefficiency.
+A key feature of Darwinian learning is fixed competence, with population members not learning within lifetime.  This feature means that each population member can learn independently, and hence be parallelized.  This is a major benefit of evolutionary methods, which helps to counteract their sample inefficiency.
 
 ## `ADGEfficiency/evolution`
 
-I hadn't worked with evolutionary algorithms before this project.  Due to possessing a simple mind that relies heaivly on empiciral understanding, I often find implementing algorithms a requirement for understanding.
+I hadn't worked with evolutionary algorithms before this project.  Due to possessing a simple mind that relies heavily on empirical understanding, I often find implementing algorithms a requirement for understanding.
 
-The simplest evolution strategy (ES) is $(1, \lambda)$-ES.  The algorithm keeps only the best performing member from the previous generation ($N_{best} = 1$), and uses an identity covariance matirx.
+The simplest evolution strategy (ES) is $(1, \lambda)$-ES.  This basic algorithm involves sampling a population of parameters from a multivariate Gaussian, using the best performing member of the previous generation as the mean and a fixed, identity covariance matrix.
 
-I implemented $(1, \lambda)$-ES and a wrapper around `pycma` in a separate repo [ADGEfficiency/evolution](https://github.com/ADGEfficiency/evolution) - please refer to the repo for more detail on the algorithms and optimization problems implemented.
-
-Below is the performance of the $(1, \lambda)$-ES algorithm on the ? problem.
+I implemented $(1, \lambda)$-ES and a wrapper around `pycma` in a separate repo [ADGEfficiency/evolution](https://github.com/ADGEfficiency/evolution) - refer to the repo for more on the algorithms and optimization problems implemented.  Below is the performance of $(1, \lambda)$-ES on the simple `Sphere` optimization problem:
 
 <center>
 	<img src="/assets/world-models/sphere-simple-solver.gif">
 <figcaption></figcaption>
 </center>
 
-There are a number of problems with $(1, \lambda)$-ES.  A major one is a fixed covariance matrix - meaning that even after the approximation of the mean is good, the population is still spread with the same variance.
-
-The evolutionary algorithm the World Models agent addresses this problem, by adapting the covariance matix.  This algorithm is called **CMA-ES**.
+There are a number of problems with $(1, \lambda)$-ES.  A major one is a fixed covariance matrix - meaning that even after the approximation of the mean is good, the population is still spread with the same variance.  The evolutionary algorithm the World Models agent addresses this problem, by adapting the covariance matix.  This algorithm is **CMA-ES**.
 
 ## CMA-ES
 
-*[Hansen (2016) The CMA Evolution Strategy: A Tutorial](https://arxiv.org/pdf/1604.00772.pdf)*
+This section was heavily influenced by the excellent *[Hansen (2016) The CMA Evolution Strategy: A Tutorial](https://arxiv.org/pdf/1604.00772.pdf)*.
 
-The Covariance Matrix Adapation Evolutionary Stragety (CMA-ES) is the evolutionary algorithm used by our World Models agent to find parameters of it's linear controller.
+The Covariance Matrix Adapation Evolutionary Stragety (CMA-ES) is the algorithm used by our agent to find parameters of it's linear controller.
 
-A key feature of CMA-ES is the successive estimation of a full covariance matrix.  When combined with an estimation of the mean, these statistics can be used to form a mulitvariate Gaussian.
+A key feature of CMA-ES is the successive estimation of a full covariance matrix.  **Unlike the algorithms we have discussed above, CMA-ES approximates a full covariance matrix of our parameter space**. This means that we model the pairwise dependencies between parameters - how one parameter changes with another.
 
-Unlike the algorithms we have discussed above, CMA-ES approximates a full covariance matix of our parameter space. This means that we model the pairwise dependencies between parameters - how one parameter changes another.
+This is different to the multivariate Gaussians we parameterized in the vision and memory components.  These have diagonal covariances, which mean each variable changes independently of the other variables.
 
-It is worth pointing out that the Gaussian's we parameterized in the vision and memory components have diagonal covariances, which mean each variable is independent of the changes in all the other variables.
+If you are wondering whether CMA-ES could be useful for your control problem, David Ha suggests that CMA-ES is effective for up to 10k parameters, as the covariance matrix calculation is $O(n^{2})$.
 
-Ha suggests that CMA-ES is effective for up to 10k parameters, as the covariance matrix calculation is $O(n^{2})$.
-
-We can introduce CMA-ES in the context of the generate, test and select loop that defines evolutionary learning.
+We can describe CMA-ES in the context of the generate, test and select loop that defines evolutionary learning.
 
 ### Generate
 
-The generation step in CMA-ES involves sampling a population from a multivariate Gaussian, parameterized by a mean $\mu$ and covariance matrix $\mathbf{COV}$:
+The generation step involves sampling a population from a multivariate Gaussian, parameterized by a mean $\mu$ and covariance matrix $\mathbf{C}$:
 
 $$ x \sim \mu + \sigma \cdot \mathbf{N} \Big(0, \mathbf{C} \Big) $$
 
 ### Test
 
-The test step in CMA-ES involves parallel rollouts of the population parameters in the environment.  In the World Models agent, each parameter is rolled out 16 times, with the results being averaged to give the fitness for each set of parameters.
+The test step involves parallel rollouts of the population parameters in the environment.  In the World Models agent, each parameter is rolled out $16$ times, with the results being averaged to give the fitness for each set of parameters.  This leads to a total of $1,024$ rollouts per generation!
 
 ### Select
 
-The selection step in CMA-ES involves selecting the best $n$ members of the population.  These population members are used to update the statistics of our multivariate Gaussian.
+The selection step involves selecting the best $n_{best}$ members of the population.  These population members are used to update the statistics of our multivariate Gaussian.
 
 We first update our estimate of the mean using a sample average over $n_{best}$ from the current generation $g$:
 
 $$ \mu_{g+1} = \frac{1}{n_{best}} \sum_{n_{best}} x_{g} $$
 
-Our next step is to update our covariance matrix $C$.
+Our next step is to update our covariance matrix $C$.  You can find a refresher on estimating a covariance matrix from samples in [Appendix Four]().
 
-### Estimating a covariance matrix
-
-Let's imagine we have a parameter space with two variables, $x$ and $y$.  We can estimate the statistics needed for a covariance matrix:
-
-$$ \mu_{x} = \frac{1}{N} \sum_{pop} x $$
-
-$$ \mu_{y} = \frac{1}{N} \sum_{pop} y $$
-
-$$ \sigma^{2}_{x} = \frac{1}{N-1} \sum_{pop} \Big( x - \mu_{x} \Big)^{2} $$
-
-$$ \sigma^{2}_{y} = \frac{1}{N-1} \sum_{pop} \Big( y - \mu_{y} \Big)^{2} $$
-
-$$ \sigma_{xy} = \frac{1}{N-1} \sum_{pop} \Big( x - \mu_{x} \Big) \Big( y - \mu_{y} \Big) $$
-
-$$\mathbf{COV} = \begin{bmatrix}  \sigma^{2}_{x} & \sigma_{xy} \\ \sigma_{yx} &  \sigma^{2}_{y}\end{bmatrix}$$
-
-The method above will approximate the covariance matrix from data (in our case, a population of controller parameters).  We can imagine successively selecting only the best set of parameters, and approximating better covarianco matricies.
-
-The update of $C$ is done using the combination of two updates - rank-one and rank-$\mu$.  Combining these update strategies helps to prevent degeneration with small population sizes, and to improve performance on badly scaled / non-separable problems.
+The CMA-ES covariance matrix estimation is more complex than this, and involves the combination of two updates known as rank-one and rank-$\mu$.  Combining these update strategies helps to prevent degeneration with small population sizes, and to improve performance on badly scaled or non-separable problems.
 
 ### Rank-one update
 
+In the context of our World Models agent, we might estimate the covariance of our next population $g+1$ using our samples $x$ and taking a reference mean value from that population:
 
-In the context of our World Models agent, we might estimate the covarianre of our next population $g+1$ using our samples $x$ and taking a reference mean value from that population.
+$$ \mathbf{C}_{g+1} = \frac{1}{N_{best} - 1} \sum_{pop} \Big( x_{g+1} - \mu_{x_{g+1}} \Big) \Big( x_{g+1} - \mu_{x_{g+1}} \Big) $$
 
-$$ \mathbf{COV}_{g+1} = \frac{1}{N_{best} - 1} \sum_{pop} \Big( x_{g+1} - \mu_{x_{g+1}} \Big) \Big( x_{g+1} - \mu_{x_{g+1}} \Big) $$
+Using the mean of the actual sample $\mu_{g+1}$ leads to an estimation of the covariance within the sample. The approach used in a rank-one update instead uses a reference mean value from the **previous generation** $g$:
 
-Using the mean of the actual sample $\mu_{g+1}$ leads to an estimation of the covariance within the sample. The approach used in a rank-one update instead uses a reference mean value from the previous generation $g$:
+$$ \mathbf{C}_{g+1} = \frac{1}{N_{best}} \sum_{pop} \Big( x_{g+1} - \mu_{x_{g}} \Big) \Big( x_{g+1} - \mu_{x_{g}} \Big) $$
 
-$$ \mathbf{COV}_{g+1} = \frac{1}{N_{best}} \sum_{pop} \Big( x_{g+1} - \mu_{x_{g}} \Big) \Big( x_{g+1} - \mu_{x_{g}} \Big) $$
-
-Using the mean of the previous generation $\mu_{g}$ leads to a covariance matrix that estimates the covariance of the sampled step.
-
-The rank-one update introduces infomation of the correlations between generations using the history of how previous populations have evolved - known as the **evolution path**:
+Using the mean of the previous generation $\mu_{g}$ leads to a covariance matrix that estimates the covariance of the **sampled step**.  The rank-one update introduces information of the correlations between generations using the history of how previous populations have evolved - known as the **evolution path**:
 
 $$ p_{g+1} = (1-c_{c})p_{g} + \sqrt{c_{c} (2-c_{c} \mu_{eff})} \frac{\mu_{g+1} - \mu_{g}}{\sigma_{g}} $$
 
 Where $c_{c}$ and $\mu_{eff}$ are hyperparameters.
 
-The evolution path is a sum over all successive steps, but can be evaluated using only a single step - similar to how we can update a value function over a single transition.  The final form of the rank-one update:
+The evolution path is a sum over all successive steps, but can be evaluated using only a single step - similar to how we can update a value function over a single transition.  The final form of the rank-one update is below:
 
-$$ \mathbf{COV}_{g+1} = (1-c_{1}) \mathbf{COV}_{g} + c_{1} p_{g+1} p_{g+1}^{T} $$
+$$ \mathbf{C}_{g+1} = (1-c_{1}) \mathbf{C}_{g} + c_{1} p_{g+1} p_{g+1}^{T} $$
 
 ### Rank-$\mu$ update
 
 With the small population sizes required by CMA-ES, getting a good estimate of the covariance matirx using a rank-one update is challenging.  The rank-$\mu$ update uses a reference mean value that uses information from all previous generations.  This is done by taking an average over all previous estimated covariance matrices:
 
-$$ \mathbf{COV} = \frac{1}{g+1} \sum_{gens} \frac{1}{\sigma^{2}} \mathbf{COV} $$
+$$ \mathbf{C} = \frac{1}{g+1} \sum_{gens} \frac{1}{\sigma^{2}} \mathbf{C} $$
 
-We can improve on this by using an exponential weights $w$ to give more influence to recent generations.  CMA-ES also includes a learning rate $c_{\mu}$:
+We can improve on this by using an exponential weights $w$ to give more influence to recent generations.  CMA-ES also includes a learning rate $c_{\mu}$, to control how fast we update:
 
-$$ \mathbf{COV}_{g+1} = (1-c_{\mu}) \mathbf{COV} + c_{\mu} \sum_{gens} w \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big) \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big)^{T} $$
-
-Note the introduction of $AA^{T}$ TODO
-
-COV(x) = \sum XX^T
+$$ \mathbf{C}_{g+1} = (1-c_{\mu}) \mathbf{C} + c_{\mu} \sum_{gens} w \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big) \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big)^{T} $$
 
 ### CMA-ES step-size control
 
-The covariance matrix estimation we see above does not explicitly control for scale.  CMA-ES implements an different evolution path ($p_{sigma}$) that is independent of the covariance matrix update seen above, known as **cumulative step length adapation** (CSA).  This helps to prevent premature convergence.
+The covariance matrix estimation we see above does not explicitly control for scale.  CMA-ES implements an different evolution path ($p_{sigma}$) that is independent of the covariance matrix update seen above, known as **cumulative step length adaptation** (CSA).  This helps to prevent premature convergence.
 
-The intuition CSA is that:
+The intuition CSA is:
 - for short evolution paths, steps are cancelling each other out -> decrease the step size
 - for long evolution paths, steps are pointing in the same direction -> increase the step size
 
-To determine whether an observed evolution path is short or long, the path length is compared with the expected length under random selection.
+To determine whether an observed evolution path is short or long, the path length is compared with the expected length under random selection.  Comparing the observed evolution path with a random (i.e. independent) path allows CMA-ES to determine how to update the step size parameter $c_{\sigma}$.
 
-Comparing the observed evolution path with a random (i.e. independent) path allows CMA-ES to determine how to update the step size parameter $c_{\sigma}$.
+Our evolution path $p_{\sigma}$ is similar to the evolution path $p$ except it is a conjugate evolution path.  After some massaging, we end up with a step size update:
 
-Our evolution path $p_{\sigma}$ is similar to the evolution path $p$ except it is a conjugate evolution path.  After some massaging (see Tutorial), we end up with a step size update:
-
-$$ \sigma_{g+1} = \sigma_{g} \exp \Big( \frac{c_{\sigma}}{d_{\sigma}} \Big(  \frac{\mid\mid p_{\sigma, g} \mid\mid}{ \mathbf{E} \mid\mid \mathbf{N} (0, I)} - 1 \Big) \Big) $$
+$$ \sigma_{g+1} = \sigma_{g} \exp \Big[ \frac{c_{\sigma}}{d_{\sigma}} \Big(  \frac{\mid\mid p_{\sigma, g} \mid\mid}{ \mathbf{E} \mid\mid \mathbf{N} (0, I)} - 1 \Big) \Big] $$
 
 Where $c_{\sigma}$ is a hyperparameter controlling the backward time horizon, and $d_{\sigma}$ is a damping parameter.
 
 ### The final CMA-ES update
 
-The final CMA-ES updates are:
+The mean is updated using a simple average of the $N_{best}$ population members from the previous generation:
 
-$$ \mu_{g+1} = \frac{1}{n_{best}} \sum_{n_{best}} x_{g} $$
+$$ \mu_{g+1} = \frac{1}{N_{best}} \sum_{N_{best}} x_{g} $$
 
-$$ C_{g+1} = (1 - c_{1} - c_{\mu} \sum w) \cdot C_{g} + c_{1} p_{g+1} \cdot p_{g+1} + c_{\mu} \sum_{gens} w \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big) \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big)^{T} $$
+The covariance matirx is updated using 
 
-Separate control of the mean, covariance and step-size:
+$$ C_{g+1} = (1 - c_{1} - c_{\mu} \cdot \sum w) \cdot C_{g} + c_{1} \cdot p_{g+1} \cdot p_{g+1}^{T} + c_{\mu} \cdot \sum_{gens} w \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big) \cdot \Big( \frac{x_{g+1} - \mu_{g}}{\sigma_{g}} \Big)^{T} $$
+
+These updates allow separate control of the mean, covariance and step-size:
 - mean update controlled by $c_{m}$
 - covariance matrix $\mathbf{C}$ update controlled by $c_{1}$ and $c_{\mu}$
 - step size update controlled by damping parameter $d_{sigma}$
 
+Phew!
+
 ## Implementing the controller & CMA-ES
 
-Above we looked at some of the mechanics of CMA-ES.  Luckily I did not need to reimplement CMA-ES!  Instead I used the wonderful [pycma]().
+Above we looked at some of the mechanics of CMA-ES.  Luckily I did not need to reimplement CMA-ES!  Instead I used the wonderful [`pycma`](https://github.com/CMA-ES/pycma).
 
-Using `pycma` required only a simple wrapper class around the ask, evaluate and tell API of pycma.
+Using `pycma` required only a simple wrapper class around the ask, evaluate and tell API of `pycma`.
 
-For each generation the rollout of the linear controller parameters are parallelized using Python's `multiprocessing`.
+For each generation the rollout of the linear controller parameters are parallelized using Python's `multiprocessing`.  When using `multiprocessing` with both `pycma` and `tensorflow`, care is required to import these packages at the correct place - **within the child process**.  Do these imports in the wrong place, and you are going to have a bad time.
 
-When using `multiprocessing` with both `pycma` and `tensorflow`, care is required to import these packages at the correct place - within the child process.  Doing these imports in `__main__` will cause you trouble.
-
-The original runs 16 rollouts per generation, with the fitness for a population member being the average across the 16 rollouts.  With a population size of 64, this leads to 1024 (TODO) rollouts per generation.
+The original runs 16 rollouts per generation, with the fitness for a population member being the average across the 16 rollouts.  With a population size of 64, this leads to 1024 rollouts per generation.
 
 I also experienced a rather painful bug where some episode rollouts would stall.  This would lead to one of the 64 processes not returning, holding up all the other processes.
 
-My solution to this was a band-aid - putting an alarm on AWS to terminate the instance if the CPU% fell below 50% for ? minutes, along with code to restart the experiment from the latest generation saved in `~/world-models-experiments/control/generations/`.
+My solution to this was a band-aid - putting an alarm on AWS to terminate the instance if the CPU% fell below 50% for 5 minutes, along with code to restart the experiment from the latest generation saved in `~/world-models-experiments/control/generations/`.
 
 ```python
 #worldmodels/control
@@ -1066,7 +969,7 @@ My solution to this was a band-aid - putting an alarm on AWS to terminate the in
 
 # Timeline
 
-Below is a rough outline of the work done on the ! months.
+Below is a rough outline of the work done on the 11 months of this project.  Eight months were spent on the technical reimplementation, with three writing this blog post.
 
 ### April 2019
 
@@ -1078,18 +981,18 @@ The first commit I have for this project is **April 6th 2019**.  Work achieved i
 29 - mdn (nan loss, cgant fine tune, using notebook, num mixes)
 - linear combination of kernels
 
-### May
+### May 2019
 
 Work achieved in this month
 - development of memory model & training scripts
 - working on understanding evolutionary methods
 - `tf.data`
 
-### June
+### June 2019
 
 I didn't work on this project in June - I was busy with lots of teaching for Batch 19 at Data Science Retreat.
 
-### July
+### July 2019
 
 Work achieved in this month
 - development of memory
@@ -1106,14 +1009,14 @@ assets/world/first.png etc
 
 - train second memory
 
-### October = batch 20 starts
+### October 2019
 
 Very little work done in October - I was busy with lots of teaching for Batch 20 at Data Science Retreat.
 
 - working on controller training
 - move out of TF 2.0 beta
 
-### November
+### November 2019
 
 Work achieved this month:
 - controller training development - saving parameters, ability to restart, random seeds for environment
@@ -1130,7 +1033,7 @@ Work achieved this month:
 |four| controller three |5,000 | 15 | 40 |
 |five| controller three |5,000 | 15 | 80 |
 
-### December
+### December 2019
 
 > Know you don’t hit it on the first generation, don’t think you hit it on the second, on the third generation maybe, on the fourth & fifth, thats when we start talking - Linus Torvalds
 
@@ -1144,48 +1047,100 @@ This was the final month of technical work (finishing on December 19), where Age
 - blog post writing
 - refactors and code cleanup
 
-### February
+### February 2020
 
 - draft one done (13 Feb)
 - readme cleanup, code cleanup
 
+### March 2020
+
 # Methods
 
-Step by step to reproduce (one round of retraining)
+I am a big believer in not duplicating code or content - the details on methodology are all held in the [reimplementation Github repo](https://github.com/ADGEfficiency/world-models).
 
-Bash script to dl weights = TODO
+## Training from scratch
 
-See readme for the full methods.
+The methodology for training the entire agent from scratch (including the second iteration) is given in the `readme.md` of the Github repo.  The basic methodology is:
+- sample rollouts from a random policy
+- train a VAE using the random policy rollouts
+- sample the VAE statistics (mean & variances of the latent space) for the random policy data
+- train the memory by sampling from the VAE statistics
+- train the controller using the VAE & memory
+
+## Using a pretrained vision, memory and controller
+
+The methodology for using pretrained agent is given in the `readme.md` of the Github repo - it involves running a bash script `pretrained.sh` to download the pretrained vision, memory & controller from a Google Drive link.
+
+## Mapping the reimplementation to the original codebase
+
+## Main differences from the original code base
+
+- requirement of a second it
 
 # Final results
 
-This section summarizes the performance of the final agent, along with training curves for the agent components.
+This section summarizes the performance of the final agent, along with training curves for the agent components. Due to the expense of training the controller (see the section on AWS costs below), [I was very glad to find the following from David Ha](http://blog.otoro.net/2018/06/09/world-models-experiments/):
 
-## Agent Five performance
+> After 150-200 generations (or around 3 days), it should be enough to get around a mean score of ~ 880, which is pretty close to the required score of 900. 
+> If you don’t have a lot of money or credits to burn, I recommend you stop if you are satistifed with a score of 850+ (which is around a day of training). 
+> Qualitatively, a score of ~ 850-870 is not that much worse compared to our final agent that achieves 900+, and I don’t want to burn your hard-earned money on cloud credits. To get 900+ it might take weeks (who said getting SOTA was easy? :) 
 
-> After 150-200 generations (or around 3 days), it should be enough to get around a mean score of ~ 880, which is pretty close to the required score of 900. If you don’t have a lot of money or credits to burn, I recommend you stop if you are satistifed with a score of 850+ (which is around a day of training). Qualitatively, a score of ~ 850-870 is not that much worse compared to our final agent that achieves 900+, and I don’t want to burn your hard-earned money on cloud credits. To get 900+ it might take weeks (who said getting SOTA was easy? :). The final models are saved in log/*.json and you can test and view them the usual way. (http://blog.otoro.net/2018/06/09/world-models-experiments/)
+The training curve for the controller:
 
-Reproduce paper plots
+<center>
+	<img src="/assets/world-models/final.png">
+<figcaption>Training of the controller (second iteration)</figcaption>
+</center>
 
-Training of VAE, training of mem
+Performance of the best controller (generation 299):
+
+<center>
+	<img src="/assets/world-models/final.png">
+<figcaption>Histogram of the best agent (generation 229) episode rewards across 48 random seeds</figcaption>
+</center>
+
+An example of the debug gif I used at various stages of the project.
+
+<center>
+	<img src="/assets/world-models/rollout.gif">
+<figcaption>A tool used for debugging - notice how noisy the memory prediction can be!</figcaption>
+</center>
 
 # Discussion
+
+In this section I give a few miscellaneous thoughts on work done in this project.
 
 ## Requirement of an iterative training procedure
 
 The most notable difference between this reimplementation and the 2018 paper is the requirement of iterative training.
 
-Section 5 of Ha & Schmidhuber (2018) notes that they were able to train a world model using a random policy, and that more difficult environments would require an iterative training procedure.
+Section 5 of Ha & Schmidhuber (2018) notes that they were able to train a world model using a random policy, and that more difficult environments would require an iterative training procedure.  This was not true with our reimplementation - we required two iterations - one using data from a random policy to train the full agent, then a second round using data sampled from the first agent.
 
 The paper codebase implements a random policy by randomly initializing the VAE, memory and controller parameters.  The reimplementation [ctallec/world-models](https://github.com/ctallec/world-models) has two methods for random action sampling - white noise (using the `gym` `env.action_space.sample()` or as a Brownian motion ([see here](https://github.com/ctallec/world-models/blob/master/utils/misc.py)).  The Brownian motion action sampling is the default.
 
 This suggests that slightly more care is needed than relying on a random policy.  An interesting next step would be to look at optimizing the frequency of the iterative training for a given budget of episode sampling.
 
+## Important debugging steps
+
+Most of the time I stuck to using the same hyperparameters as in the paper code base.  Hyperparameters I changed:
+- batch size to 256 in the VAE training (originally !)
+- CMA-ES `s0` set to 0.5
+- amount of training data & epochs for the later iterations of VAE & memory training
+
+- image antialiasing
+- VAE not performing well when it went off track (loss + inspect the reconstruction) - exporation problem
+
 ## Thoughts on Tensorflow 2.0
+
+This reimplementation was started during the beta of Tensorflow 2.0.  It is a massive improvement over Tensorflow 1.0.
+
+The main learning points are adapting to the style of inheriting from `tf.keras.Model`, and then using the `__call__` method of your child class to implement the forward pass.
+
+The only issue I had was with passing around the hidden state of the LSTM.  At the time [I wrote a short blog post about my experience](https://adgefficiency.com/tf2-lstm-hidden/) - I plan on revisiting this to see if moving out of beta has fixed my issue.
 
 ## Thoughts on `tf.data`
 
-For datasets larger than memory, batches must loaded from disk as needed.  Holding a buffer of batches makes sense to keep GPU utilization high.
+For datasets larger than memory, batches must loaded from disk as needed.  Holding a buffer of batches also makes sense to keep GPU utilization high.
 
 One way to achieve this is using `tf.data`.  The API for this library is challenging, and we were required to use the `tf.data` at three different levels of abstraction (a tensor of floats, multiple tensors and a full dataset).
 
@@ -1209,22 +1164,25 @@ The coverage for our implementation of `tf.data` is fully tested - see [worldmod
 
 Occasionally I get corrupt records - a smwall helper utility is given in [worldmwodels/utils.py]():
 
-It is possible to load the `.tfrecord` files directly from S3.  As neural network training requires multiple passes over the dataset, it makes more sense to pull these down onto the instance and access them locally.
+It is possible to load the `.tfrecord` files directly from S3.  As neural network training requires multiple passes over the dataset, it makes more sense to pull these down onto the instance using the S3 CLI and access them locally.
 
 ## AWS lessons
 
-I had experience running compute on AVS beefore this project, but not on setting up an entire account from scratch.  The progress was fairly painless, with a reasonable amound of time conficuring the infrastructure I needed.
+I had experience running compute on AVS beefore this project, but not on setting up an entire account from scratch.  The progress was fairly painless, with a reasonable around of time configuring the infrastructure I needed.
 
-Setup involved:
-- insatnce allowances
-- S3 bucket
-- IAM to create a user - give S3 access here
+The main tasks to get setup were:
+- using IAM to create a user (seen as a best practice, even though my account has only one user)
+- creating an S3 bucket, with permissions for the IAM user
 - security group with ports open for SSH
-- setup.txt
+- requesting allowances for instances - slightly frustrating, but the AWS support always got back within 24 hours
+- using a `setup.txt` to automate some of the instance setup
 
-Custom cli commands for what I needed
-- change instance type
-- change volume size
+Most of these tasks involved creating a few wrappers around the AWS CLI:
+
+```bash
+```
+
+The `setup.txt` I used:
 
 ```bash
 ```
@@ -1239,7 +1197,7 @@ Compute costs = EC2
 
 Storage costs = EBS + S3
 
-Breakdown of total costs per component (compute costs only):
+Breakdown of total costs per component (compute costs only) (TABLLE IS WRRONG)
 
 | component         |   Cost [$] |   Cost [%] |
 |:------------------|-----------:|-----------:|
@@ -1273,11 +1231,6 @@ One painful mistake occured in September 2019 - leaving a ~ 1TB SSD volume sitti
 
 ### Thoughts on future hyperparameter tweaking
 
-Most of the time I stuck to using the same hyperparameters as in the paper code base.  Hyperparameters I changed:
-- batch size to 256 in the VAE training (originally !)
-- CMA-ES `s0` set to 0.5
-- amount of training data & epochs for the later iterations of VAE & memory training
-
 As I was working on this project, a number of other hyperparameters that could be optimized came to mind:
 - VAE loss balancing - in the paper implementation this is done using a `kl_tolerance` parameter of 0.5
 
@@ -1293,16 +1246,150 @@ kl_loss = tf.reduce_mean(
 
 ## What did I learn / takeaways
 
-VAE, MDN, evolution
+### Reimplement papers
 
-TF 2
+This was the first machine learning paper I have reimplemented.  It is something I am going to do again, and would highly recommend.
 
-Body of work surrounding (blog posts etc).  Same as Silver for Go
+### Machine learning tools
 
-# next steps
+I hadn't worked with a VAE or MDN before this project.  Both are now important tools in my toolbox - I expect MDN's in particular to be very useful in business context's, due to the estimation of uncertainty that the parameterized variance provides.
+
+I now have a decent grasp of evolutionary methods. I know there are many more algorithms out there than CMA-ES, 
+
+### Create bodies of work
+
+One of the more pleasant insights I had while working on this project was discovering the many blog posts by David Ha on the various components of the World Models agent (in particular MDNs & evolutionary algorithms).
+
+It is inspiring to actually be able to see and follow some of the strands of the development.  It is also a perfect example of why working in machine learning is amazing - world class reseachers publically sharing content that helps others learn.
+
+Another example of this insight isDavid Silver
+
+Inspiring to see that greatness is built in small steps.  This reimplementation of World Models is one of my small steps.
 
 # References
 
-(same as ToC)
+A full list of reference material for this project is kept in a repository I use to store my reinforcement learning resources - you can find the world models references at [ADGEfficiency/rl-resources/world-models](https://github.com/ADGEfficiency/rl-resources/tree/master/world-models).
 
-ref dqn, rainbow
+# Appendix
+
+## Appendix One - Markov Decision Process
+
+A Markov Decision Process (MDP) is a mathematical framework for decision making.  Commonly the goal of an agent in an MDP is to maximize the expectation of future rewards.  It can be defined as a tuple:
+
+$$ (\mathcal{S}, \mathcal{A}, \mathcal{R}, P, R, d_0, \gamma, H) $$
+
+- set of states $\mathcal{S}$
+- set of actions $\mathcal{A}$
+- set of rewards $\mathcal{R}$
+- state transition function $ P(s' \mid s,a) $
+- reward transition function $ R(r \mid s,a,s') $
+- distribution over initial states $d_0$
+- discount factor $\gamma$
+- horizion $H$
+
+It is common to make the distinction between the state $s$ and observation $x$.  The state represents the true state of the environment and has the Markov property. The observation is what the agent sees.  The observation is less informative, and often not Markovian.
+
+Because the World Models agent uses the total episode reward as a learning signal, there is no role for a discount rate $\gamma$.
+
+The data collected by an agent interacting with an environment is a sequence of transitions, with a transition being a tuple of observation, action, reward and next state:
+
+$$ (x, a, r, x') $$
+
+- $x$ observation
+- $a$ action
+- $r$ reward
+- $x'$ next observation
+
+## Appendix Two - Generative versus discriminative models
+
+To better understand the context of the VAE, let's take a quick detour into a useful categorization of predictive modelling - generative versus discriminative.
+
+All approaches in supervised learning are either generative or discriminative.
+
+### Generative models
+
+**Generative models learn a joint distribution** $P(x, z)$ (the probability of $x$ and $z$ occurring together).  Generative models generate new, unobserved data $x'$.
+
+We can derive this process for generating new data, from the definition of conditional probability:
+
+$$ P(x \mid z) = \frac{P(x, z)}{P(z)} $$
+
+Rearranging this definition gives us a decomposition of the joint distribution. This is the product rule of probability:
+
+$$P(x, z) = P(x \mid z) \cdot P(z)$$
+
+This decomposition describes the entire generative process.  First sample a latent representation:
+
+$$z \sim P(z)$$
+
+Then sample a generated data point $x'$, using the conditional probability $P(x \mid z)$:
+
+$$x' \sim P(x \mid z)$$
+
+These sampling and decoding steps only describe the generation of new data $x'$ from an unspecified generative model.  It doesn't describe the entire structure of a VAE.
+
+### Discriminative models
+
+Unlike generative models, **discriminative models learn a conditional probability** $P(x \mid z)$ (the probability of $x$ given $z$).  Discriminative models predict, using observed $z$ to predict $x$.  This is simpler than generative modelling.
+
+A common discriminative computer vision problem is classification, where a high dimensional image is fed through convolutions and outputs a predicted class.
+
+## Appendix Three - Convolution
+
+<center>
+	<img src="/assets/world-models/conv.png">
+	<figcaption>2D convolution with a single filter</figcaption>
+  <div></div>
+</center>
+
+Naturally we associate an image as having two dimensions - height & width.  Computers look at images in three dimensions - height, width and colour channels.
+
+The kind of convolution used in neural networks to process images are therefore volume to volume operations - they take a volume as input and produce a volume as output.
+
+At the heart of convolution is the filter (sometimes called a kernel).  These are usually defined as two dimensional, with the third dimension being set to match the number of channels in the image (3 for RGB).
+
+Different kernels are learnt at different layers - shallower layers learn basic features such as edges, with later layers having filters that detect complex compositions of simpler features.
+
+We can think about these kernels operating on tensors of increasing size:
+- matrix (3, 3) * kernel (3, 3) -> scalar (1, )
+- image (6, 6, 1) * kernel (3, 3, 1) -> image (6, 6, 1)
+- image (6, 6, 1) * n kernels (n, 3, 3, 1) -> tensor (6, 6, 1, n)
+
+Important hyperparameters in convolutional neural networks:
+- size of filters (typically 3x3)
+- number of filters per layer
+- padding
+- strides
+
+Due to reusing kernels, the convolution neural network is translation invariant, meaning the features can be detected in different parts of the images.  This is ideal in image classification.  Max-pooling (commonly used to downsample the size of the internal representation) also produces translation invariance (along with a loss of infomation).
+
+## Appendix Four - Estimating a covariance matrix
+
+Before detailing how CMA-ES estimates it's covariance matrix, we can first review how we would estimate the covariance matrix of a distribution, if we were given only samples from that distribution (i.e. samples from a set of parameters that did well on a control task).
+
+Let's imagine we have a parameter space with two variables, $x$ and $y$, along with samples from the distribution $P(x,y)$.  We can estimate the statistics needed for a covariance matrix as follows.  First the means:
+
+$$ \mu_{x} = \frac{1}{N} \sum_{pop} x $$
+
+$$ \mu_{y} = \frac{1}{N} \sum_{pop} y $$
+
+Then the covariances on the diagonal:
+
+$$ \sigma^{2}_{x} = \frac{1}{N-1} \sum_{pop} \Big( x - \mu_{x} \Big)^{2} $$
+
+$$ \sigma^{2}_{y} = \frac{1}{N-1} \sum_{pop} \Big( y - \mu_{y} \Big)^{2} $$
+
+And the covariance of how our two parameters vary together:
+
+$$ \sigma_{xy} = \frac{1}{N-1} \sum_{pop} \Big( x - \mu_{x} \Big) \Big( y - \mu_{y} \Big) $$
+
+This then gives us our estimated covariance matrix for our samples:
+
+$$\mathbf{C} = \begin{bmatrix}  \sigma^{2}_{x} & \sigma_{xy} \\ \sigma_{yx} &  \sigma^{2}_{y}\end{bmatrix}$$
+
+The method above will approximate the covariance matrix from data (in our case, a population of controller parameters).  We can imagine successively selecting only the best set of parameters, and approximating better covariance matrices.
+
+
+---
+
+Thanks for reading!

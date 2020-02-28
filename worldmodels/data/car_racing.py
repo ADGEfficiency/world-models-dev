@@ -48,7 +48,6 @@ class CarRacingWrapper(CarRacing):
             max_val=255.0,
             save_img=save_img
         )
-
         return obs, reward, done, info
 
     def reset(self):
