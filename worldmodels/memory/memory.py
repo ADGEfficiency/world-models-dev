@@ -5,7 +5,6 @@ import numpy as np
 import tensorflow as tf
 
 # https://github.com/hardmaru/WorldModelsExperiments/blob/master/carracing/rnn/rnn.py
-# http://blog.otoro.net/2015/11/24/mixture-density-networks-with-tensorflow/
 
 
 def get_pi_idx(pis, threshold):
@@ -22,7 +21,7 @@ def get_pi_idx(pis, threshold):
 
     #  if we get to this point, something is wrong!
     print('pdf {} thresh {}'.format(pdf, threshold))
-    return idx - 1
+    return idx
 
 
 class MLP(tf.keras.Model):
@@ -277,5 +276,4 @@ class Memory:
         self.optimizer.apply_gradients(
             zip(gradients, self.lstm.net.trainable_variables)
         )
-
         return loss
