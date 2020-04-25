@@ -144,6 +144,8 @@ Now that we understand the motivations and context of this project, we can look 
 
 Our agent interacts with the `car-racing-v0` environment from OpenAI's `gym` library.  I used the same version of `gym` as the paper codebase (`gym==0.9.4`).
 
+`car-racing-v0` is a continous action space probelm.
+
 ## Working with `car-racing-v0` 
 
 We can describe the `car-racing-v0` environment as a Markov Decision Process.  
